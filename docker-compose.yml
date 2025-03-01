@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  mysql-container:
+    image: mysql:latest
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  springboot-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      mysql-container:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
