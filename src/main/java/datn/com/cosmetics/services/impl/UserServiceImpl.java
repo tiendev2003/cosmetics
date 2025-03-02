@@ -1,6 +1,7 @@
 package datn.com.cosmetics.services.impl;
 
 import java.security.SecureRandom;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -125,9 +126,40 @@ public class UserServiceImpl implements IUserService {
         return false;
     }
 
+    @Override
+    public User getUserByEmail(String email) throws UserNotFoundException {
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            throw new UserNotFoundException("User not found with email: " + email);
+        }
+        return user;
+    }
+
     private String generateOtp() {
         SecureRandom random = new SecureRandom();
         int otp = 100000 + random.nextInt(900000);
         return String.valueOf(otp);
+    }
+
+    @Override
+    public List<User> getAllUser() {
+        return userRepository.findAll();
+    }
+
+    @Override
+    public boolean deleteUserById(Long id) {
+        userRepository.deleteById(id);
+        return true;
+    }
+
+    @Override
+    public boolean blockUserById(Long id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user != null) {
+            user.setLocked(true);
+            userRepository.save(user);
+            return true;
+        }
+        return false;
     }
 }

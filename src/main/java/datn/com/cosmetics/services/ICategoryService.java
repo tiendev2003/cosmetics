@@ -15,4 +15,5 @@ public interface ICategoryService {
     Category getCategoryById(Long id);
     List<Category> getAllCategories();
     Page<Category> getAllCategories(String name, Pageable pageable);
+    void checkDuplicateCategoryName(String name);
 }

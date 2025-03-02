@@ -40,6 +40,7 @@ public class Order {
     @OneToOne
     private Address shippingAddress;
 
+    private String paymentMethod;
     private String status;
 
     private double totalPrice;

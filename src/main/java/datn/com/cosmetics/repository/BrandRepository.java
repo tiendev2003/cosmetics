@@ -10,4 +10,6 @@ import datn.com.cosmetics.entity.Brand;
 @Repository
 public interface BrandRepository extends JpaRepository<Brand, Long> {
     Page<Brand> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    Brand findByName(String name);
+    boolean existsByName(String name);
 }

@@ -11,10 +11,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Address {
 
     @Id
@@ -38,6 +42,13 @@ public class Address {
 
     @Column(name = "zip_code")
     private String zipCode;
+
+    private String phone;
+
+    private String email;
+
+    @Column(name = "is_default")
+    private boolean isDefault = false;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdDate = LocalDateTime.now();
 

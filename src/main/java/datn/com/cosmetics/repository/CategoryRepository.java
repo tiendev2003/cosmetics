@@ -10,4 +10,5 @@ import datn.com.cosmetics.entity.Category;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long> {
     Page<Category> findByNameContaining(String name, Pageable pageable);
+    boolean existsByName(String name);
 }

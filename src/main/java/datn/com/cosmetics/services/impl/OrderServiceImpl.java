@@ -9,7 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import datn.com.cosmetics.dto.OrderRequest;
+import datn.com.cosmetics.bean.request.OrderRequest;
 import datn.com.cosmetics.entity.Address;
 import datn.com.cosmetics.entity.Order;
 import datn.com.cosmetics.entity.OrderItem;
@@ -51,15 +51,30 @@ public class OrderServiceImpl implements IOrderService {
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
-
-        Address address = addressRepository.findById(orderRequest.getAddress())
+        List<Address> addresses = addressRepository.findByUser(user);
+        if (addresses.isEmpty()) {
+            throw new IllegalArgumentException("User has no address");
+        }
+        // tìm id address trong list address của user
+        Address address = addresses.stream()
+                .filter(a -> a.getId().equals(orderRequest.getAddress()))
+                .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Address not found"));
+        if (address.getUser().getId() != user.getId()) {
+            return null;
+        }
+
+        if (!isValidPaymentMethod(orderRequest.getPaymentMethod())) {
+            throw new IllegalArgumentException("Invalid payment method: " + orderRequest.getPaymentMethod());
+        }
 
         Order order = new Order();
         order.setUser(user);
         order.setShippingAddress(address);
         order.setTotalPrice(orderRequest.getTotalPrice());
         order.setStatus("PENDING");
+        order.setPaymentMethod(orderRequest.getPaymentMethod());
+
         Order newOrder = orderRepository.save(order);
 
         // Lưu OrderItem
@@ -96,6 +111,7 @@ public class OrderServiceImpl implements IOrderService {
     public Order changeStatusOrder(Long id, String status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> null);
+        System.out.println("status: " + status);
         if (!isValidStatus(status)) {
             throw new IllegalArgumentException("Invalid status: " + status);
         }
@@ -122,8 +138,10 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     private boolean isValidStatus(String status) {
-        return List.of("PENDING", "SHIPPED", "DELIVERED", "CANCELLED").contains(status);
+        return List.of("PENDING", "CONFIRMED", "DELIVERED", "CANCELLED", "PAID", "SHIPPED").contains(status);
     }
 
-    
+    private boolean isValidPaymentMethod(String paymentMethod) {
+        return List.of("COD", "CREDIT_CARD", "MOMO").contains(paymentMethod);
+    }
 }

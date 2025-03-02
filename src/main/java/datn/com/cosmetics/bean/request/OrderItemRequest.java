@@ -1,4 +1,4 @@
-package datn.com.cosmetics.dto;
+package datn.com.cosmetics.bean.request;
 
 import lombok.Data;
 

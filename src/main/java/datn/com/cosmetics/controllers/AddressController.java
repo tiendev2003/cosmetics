@@ -21,17 +21,22 @@ import datn.com.cosmetics.bean.request.AddressRequest;
 import datn.com.cosmetics.bean.response.ApiResponse;
 import datn.com.cosmetics.entity.Address;
 import datn.com.cosmetics.entity.User;
+import datn.com.cosmetics.exceptions.DuplicateResourceException;
 import datn.com.cosmetics.services.IAddressService;
 import datn.com.cosmetics.services.IUserService;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 
 @RestController
 @RequestMapping("/api/address")
 @Tag(name = "Address", description = "API for address management")
 @Validated
+@OpenAPIDefinition(info = @Info(title = "User API", version = "1.0", description = "User management API"))
 public class AddressController {
 
     @Autowired
@@ -64,8 +69,12 @@ public class AddressController {
         address.setState(addressRequest.getState());
         address.setZipCode(addressRequest.getZipCode());
         address.setUser(user);
-        Address createdAddress = addressService.createAddress(address);
-        return ResponseEntity.ok(ApiResponse.success(createdAddress, "Address created successfully"));
+        try {
+            Address createdAddress = addressService.createAddress(address);
+            return ResponseEntity.ok(ApiResponse.success(createdAddress, "Address created successfully"));
+        } catch (ValidationException | DuplicateResourceException ex) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
@@ -84,8 +93,30 @@ public class AddressController {
         address.setCity(addressRequest.getCity());
         address.setState(addressRequest.getState());
         address.setZipCode(addressRequest.getZipCode());
-        Address updatedAddress = addressService.updateAddress(id, address);
-        return ResponseEntity.ok(ApiResponse.success(updatedAddress, "Address updated successfully"));
+        try {
+            Address updatedAddress = addressService.updateAddress(id, address);
+            return ResponseEntity.ok(ApiResponse.success(updatedAddress, "Address updated successfully"));
+        } catch (ValidationException ex) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/toggle-default")
+    @Operation(summary = "Toggle default address", description = "Set the specified address as default and unset others")
+    public ResponseEntity<ApiResponse<Void>> toggleDefaultAddress(
+            @Parameter(description = "Address ID", required = true) @PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+        }
+
+        String username = authentication.getName();
+        User user = userService.getUserInfo(username);
+
+        addressService.toggleDefaultAddress(id, user);
+        return ResponseEntity.ok(ApiResponse.success(null, "Default address toggled successfully"));
     }
 
     @DeleteMapping("/{id}")

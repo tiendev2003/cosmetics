@@ -1,9 +1,9 @@
 package datn.com.cosmetics.services;
 
+import java.util.List;
+
 import datn.com.cosmetics.entity.Address;
 import datn.com.cosmetics.entity.User;
-
-import java.util.List;
 
 public interface IAddressService {
     Address createAddress(Address address);
@@ -12,4 +12,5 @@ public interface IAddressService {
     Address getAddressById(Long id);
     List<Address> getAllAddresses();
     List<Address> getAllAddressesByUser(User user);
+    void toggleDefaultAddress(Long addressId, User user);
 }

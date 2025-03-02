@@ -16,25 +16,25 @@ import lombok.Data;
 @Entity
 @Data
 public class Review {
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.AUTO)
+  private Long id;
 
-    private String review;
-    private float star;
+  private String review;
+  private double star;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
-    @JsonIgnore
-    private Product product;
+  @ManyToOne
+  @JoinColumn(name = "product_id")
+  @JsonIgnore
+  private Product product;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+  @ManyToOne
+  @JoinColumn(name = "user_id")
+  private User user;
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdDate = LocalDateTime.now();
+  private LocalDateTime createdDate = LocalDateTime.now();
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime updatedDate = LocalDateTime.now();
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+  private LocalDateTime updatedDate = LocalDateTime.now();
 
 }

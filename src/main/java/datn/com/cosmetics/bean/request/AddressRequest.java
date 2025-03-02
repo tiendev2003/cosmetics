@@ -29,4 +29,14 @@ public class AddressRequest {
     @NotBlank(message = "Zip code is required")
     @Size(max = 10, message = "Zip code must be less than 10 characters")
     private String zipCode;
+
+    @NotBlank(message = "Phone is required")
+    @Size(max = 15, message = "Phone must be less than 15 characters")
+    private String phone;
+
+    @NotBlank(message = "Email is required")
+    @Size(max = 50, message = "Email must be less than 50 characters")
+    private String email;
+
+    private boolean isDefault;
 }

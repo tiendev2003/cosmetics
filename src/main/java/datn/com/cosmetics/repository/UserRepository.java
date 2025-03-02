@@ -15,4 +15,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findById(Long id);
 
+    // delete user by id
+    void deleteById(Long id);
+
 }

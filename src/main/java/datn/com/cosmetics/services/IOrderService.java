@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import datn.com.cosmetics.dto.OrderRequest;
+import datn.com.cosmetics.bean.request.OrderRequest;
 import datn.com.cosmetics.entity.Order;
 
 public interface IOrderService { // Fixed typo in interface name

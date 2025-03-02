@@ -14,10 +14,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Blog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,10 +47,17 @@ public class Blog {
     private User author;
 
     @ManyToMany
-    @JoinTable(
-        name = "blog_tags",
-        joinColumns = @JoinColumn(name = "blog_id"),
-        inverseJoinColumns = @JoinColumn(name = "tag_id")
-    )
+    @JoinTable(name = "blog_tags", joinColumns = @JoinColumn(name = "blog_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags;
+
+    public Blog(String title, String content, String image, String status,
+            BlogCategory category, User author, Set<Tag> tags) {
+        this.title = title;
+        this.content = content;
+        this.image = image;
+        this.status = status;
+        this.category = category;
+        this.author = author;
+        this.tags = tags;
+    }
 }

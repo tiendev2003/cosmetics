@@ -27,10 +27,14 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "users")
 public class User implements UserDetails {
 
@@ -80,7 +84,6 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
 
-
     @JsonManagedReference
     @OneToOne(mappedBy = "user")
     private Cart cart;
@@ -114,4 +117,16 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public User(String username, String email, String password, String avatar, boolean isLocked, String role) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.avatar = avatar;
+        this.isLocked = isLocked;
+        this.role = role;
+        this.createdDate = LocalDateTime.now();
+        this.updatedDate = LocalDateTime.now();
+    }
+
 }

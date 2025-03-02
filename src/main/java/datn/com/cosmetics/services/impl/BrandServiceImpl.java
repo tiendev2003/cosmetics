@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import datn.com.cosmetics.bean.request.BrandRequest;
 import datn.com.cosmetics.entity.Brand;
+import datn.com.cosmetics.exceptions.DuplicateResourceException;
+import datn.com.cosmetics.exceptions.ResourceNotFoundException;
+import datn.com.cosmetics.exceptions.ValidationException;
 import datn.com.cosmetics.repository.BrandRepository;
 import datn.com.cosmetics.services.IBrandService;
 
@@ -21,6 +24,10 @@ public class BrandServiceImpl implements IBrandService {
 
     @Override
     public Brand createBrand(BrandRequest brandRequest) {
+        if (brandRepository.existsByName(brandRequest.getName())) {
+            throw new DuplicateResourceException("Brand already exists with this name");
+        }
+        validateBrand(brandRequest);
         Brand brand = new Brand();
         brand.setName(brandRequest.getName());
         brand.setDescription(brandRequest.getDescription());
@@ -33,6 +40,7 @@ public class BrandServiceImpl implements IBrandService {
     public Brand updateBrand(Long id, BrandRequest brandRequest) {
         Optional<Brand> existingBrand = brandRepository.findById(id);
         if (existingBrand.isPresent()) {
+            validateBrand(brandRequest);
             Brand updatedBrand = existingBrand.get();
             updatedBrand.setName(brandRequest.getName());
             updatedBrand.setDescription(brandRequest.getDescription());
@@ -40,17 +48,28 @@ public class BrandServiceImpl implements IBrandService {
             updatedBrand.setStatus(brandRequest.getStatus());
             return brandRepository.save(updatedBrand);
         }
-        return null;
+        throw new ResourceNotFoundException("Brand not found");
+    }
+
+    private void validateBrand(BrandRequest brandRequest) {
+        if (brandRequest.getName().isEmpty() || brandRequest.getDescription().isEmpty() ||
+            brandRequest.getImage().isEmpty() || brandRequest.getStatus() == null) {
+            throw new ValidationException("All fields are required");
+        }
+        // Add more validation logic as needed
     }
 
     @Override
     public void deleteBrand(Long id) {
+        if (!brandRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Brand not found");
+        }
         brandRepository.deleteById(id);
     }
 
     @Override
     public Brand getBrandById(Long id) {
-        return brandRepository.findById(id).orElse(null);
+        return brandRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
     }
 
     @Override

@@ -1,5 +1,5 @@
 
-package datn.com.cosmetics.dto;
+package datn.com.cosmetics.bean.request;
 
 import java.util.List;
 
@@ -9,6 +9,7 @@ import lombok.Data;
 public class OrderRequest {
     String username;
     Long address;
+    String paymentMethod;
     List<OrderItemRequest> orderItems;
     double totalPrice;
 

@@ -11,10 +11,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Brand {
 
     @Id
@@ -35,5 +39,11 @@ public class Brand {
     @JsonIgnore
     @OneToMany(mappedBy = "brand")
     private List<Product> products;
+
+    public Brand(String name, String description, String image) {
+        this.name = name;
+        this.description = description;
+        this.image = image;
+    }
 
 }

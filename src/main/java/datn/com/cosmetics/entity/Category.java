@@ -12,10 +12,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Category {
 
   @Id
@@ -47,5 +51,11 @@ public class Category {
   @OneToMany(mappedBy = "category")
   @Schema(description = "List of products under this category")
   private List<Product> products;
+
+  public Category(String name, String description, String image) {
+    this.name = name;
+    this.description = description;
+    this.image = image;
+  }
 
 }

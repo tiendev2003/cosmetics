@@ -1,6 +1,9 @@
 package datn.com.cosmetics.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,7 +32,7 @@ import jakarta.mail.MessagingException;
 @RestController
 @RequestMapping("/api/user")
 @Tag(name = "User API", description = "API for user operations")
-public class ApiUserController {
+public class UserController {
 
     @Autowired
     private IUserService userService;
@@ -88,15 +91,13 @@ public class ApiUserController {
 
             String username = authentication.getName();
 
-            User user = userService.getUserInfo(username);
-            if (user == null) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("User not found"));
-            }
+            User user = userService.getUserByEmail(username);
             return ResponseEntity.ok(ApiResponse.success(user, "User info"));
 
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-
         }
     }
 
@@ -155,5 +156,51 @@ public class ApiUserController {
             return ResponseEntity.ok(ApiResponse.success("OTP verified successfully", ""));
         }
         return ResponseEntity.badRequest().body(ApiResponse.error("Failed to verify OTP"));
+    }
+
+    // get all user
+    @Operation(summary = "Get all user", description = "Get all user")
+    @GetMapping("/all")
+    public ResponseEntity<ApiResponse<List<User>>> getAllUser() {
+        try {
+            return ResponseEntity.ok(ApiResponse.success(userService.getAllUser(), "Get all user successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    // get user by id
+    @Operation(summary = "Get user by id", description = "Get user by id")
+    @GetMapping("/get")
+    public ResponseEntity<ApiResponse<User>> getUserById(@RequestParam Long id) {
+        try {
+            return ResponseEntity.ok(ApiResponse.success(userService.getUserById(id), "Get user by id successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    // delete user by id
+    @Operation(summary = "Delete user by id", description = "Delete user by id")
+    @GetMapping("/delete")
+    public ResponseEntity<ApiResponse<User>> deleteUserById(@RequestParam Long id) {
+        try {
+            userService.deleteUserById(id);
+            return ResponseEntity.ok(ApiResponse.success(null, "Delete user by id successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
+
+    // block user by id
+    @Operation(summary = "Block user by id", description = "Block user by id")
+    @GetMapping("/block")
+    public ResponseEntity<ApiResponse<User>> blockUserById(@RequestParam Long id) {
+        try {
+            userService.blockUserById(id);
+            return ResponseEntity.ok(ApiResponse.success(null, "Block user by id successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
     }
 }

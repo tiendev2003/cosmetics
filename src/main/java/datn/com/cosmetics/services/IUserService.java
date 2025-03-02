@@ -1,5 +1,7 @@
 package datn.com.cosmetics.services;
 
+import java.util.List;
+
 import datn.com.cosmetics.bean.request.RegisterRequest;
 import datn.com.cosmetics.entity.User;
 import datn.com.cosmetics.exceptions.UserNotFoundException;
@@ -21,4 +23,12 @@ public interface IUserService {
     boolean sendOtpEmail(String email) throws MessagingException, UserNotFoundException;
 
     boolean verifyOtp(String email, String otp);
+
+    User getUserByEmail(String email) throws UserNotFoundException;
+
+    List<User> getAllUser();
+
+    boolean deleteUserById(Long id);
+
+    boolean blockUserById(Long id);
 }

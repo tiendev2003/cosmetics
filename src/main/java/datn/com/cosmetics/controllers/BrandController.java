@@ -19,9 +19,11 @@ import org.springframework.web.bind.annotation.RestController;
 import datn.com.cosmetics.bean.request.BrandRequest;
 import datn.com.cosmetics.bean.response.ApiResponse;
 import datn.com.cosmetics.entity.Brand;
+import datn.com.cosmetics.exceptions.ValidationException;
 import datn.com.cosmetics.services.IBrandService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/brand")
@@ -33,19 +35,28 @@ public class BrandController {
 
     @PostMapping
     @Operation(summary = "Create a new brand", description = "Create a new brand with the provided details")
-    public ResponseEntity<ApiResponse<Brand>> createBrand(@RequestBody BrandRequest brandRequest) {
-        Brand createdBrand = brandService.createBrand(brandRequest);
-        return ResponseEntity.ok(ApiResponse.success(createdBrand, "Brand created successfully"));
+    public ResponseEntity<ApiResponse<Brand>> createBrand(@Valid @RequestBody BrandRequest brandRequest) {
+        try {
+            Brand createdBrand = brandService.createBrand(brandRequest);
+            return ResponseEntity.ok(ApiResponse.success(createdBrand, "Brand created successfully"));
+        } catch (ValidationException ex) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));
+        }
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing brand", description = "Update the details of an existing brand by ID")
-    public ResponseEntity<ApiResponse<Brand>> updateBrand(@PathVariable Long id, @RequestBody BrandRequest brandRequest) {
-        Brand updatedBrand = brandService.updateBrand(id, brandRequest);
-        if (updatedBrand != null) {
-            return ResponseEntity.ok(ApiResponse.success(updatedBrand, "Brand updated successfully"));
+    public ResponseEntity<ApiResponse<Brand>> updateBrand(@PathVariable Long id,
+            @Valid @RequestBody BrandRequest brandRequest) {
+        try {
+            Brand updatedBrand = brandService.updateBrand(id, brandRequest);
+            if (updatedBrand != null) {
+                return ResponseEntity.ok(ApiResponse.success(updatedBrand, "Brand updated successfully"));
+            }
+            return ResponseEntity.status(404).body(ApiResponse.error("Brand not found"));
+        } catch (ValidationException ex) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(ex.getMessage()));
         }
-        return ResponseEntity.status(404).body(ApiResponse.error("Brand not found"));
     }
 
     @DeleteMapping("/{id}")
@@ -67,9 +78,11 @@ public class BrandController {
 
     @GetMapping
     @Operation(summary = "Get all brands", description = "Retrieve a list of all brands with optional search by name and pagination")
-    public ResponseEntity<ApiResponse<List<Brand>>> getAllBrands(@RequestParam(required = false) String name, Pageable pageable) {
+    public ResponseEntity<ApiResponse<List<Brand>>> getAllBrands(@RequestParam(required = false) String name,
+            Pageable pageable) {
         Page<Brand> brands = brandService.getAllBrands(name, pageable);
-        ApiResponse.Pagination pagination = new ApiResponse.Pagination(brands.getNumber() + 1, brands.getTotalPages(), brands.getTotalElements());
+        ApiResponse.Pagination pagination = new ApiResponse.Pagination(brands.getNumber() + 1, brands.getTotalPages(),
+                brands.getTotalElements());
         String message = "Brands retrieved successfully";
         return ResponseEntity.ok(ApiResponse.success(brands.getContent(), message, pagination));
     }

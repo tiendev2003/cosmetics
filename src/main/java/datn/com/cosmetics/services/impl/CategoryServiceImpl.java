@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import datn.com.cosmetics.bean.request.CategoryRequest;
 import datn.com.cosmetics.entity.Category;
+import datn.com.cosmetics.exceptions.DuplicateCategoryNameException;
 import datn.com.cosmetics.repository.CategoryRepository;
 import datn.com.cosmetics.services.ICategoryService;
 
@@ -21,6 +22,7 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     public Category createCategory(CategoryRequest categoryRequest) {
+        checkDuplicateCategoryName(categoryRequest.getName());
         Category category = new Category();
         category.setName(categoryRequest.getName());
         category.setDescription(categoryRequest.getDescription());
@@ -31,6 +33,7 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     public Category updateCategory(Long id, CategoryRequest categoryRequest) {
+        checkDuplicateCategoryName(categoryRequest.getName());
         Optional<Category> existingCategory = categoryRepository.findById(id);
         if (existingCategory.isPresent()) {
             Category updatedCategory = existingCategory.get();
@@ -64,5 +67,12 @@ public class CategoryServiceImpl implements ICategoryService {
             return categoryRepository.findByNameContaining(name, pageable);
         }
         return categoryRepository.findAll(pageable);
+    }
+
+    @Override
+    public void checkDuplicateCategoryName(String name) {
+        if (categoryRepository.existsByName(name)) {
+            throw new DuplicateCategoryNameException("Category name already exists: " + name);
+        }
     }
 }
