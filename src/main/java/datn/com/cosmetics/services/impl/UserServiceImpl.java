@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 
 import datn.com.cosmetics.bean.request.RegisterRequest;
+import datn.com.cosmetics.bean.request.UserRequest;
 import datn.com.cosmetics.entity.Cart;
 import datn.com.cosmetics.entity.User;
 import datn.com.cosmetics.exceptions.UserNotFoundException;
@@ -71,7 +72,7 @@ public class UserServiceImpl implements IUserService {
     public boolean changeAvatar(String email, String avatarUrl) {
 
         User user = userRepository.findByEmail(email);
-
+        System.out.println(avatarUrl);
         if (user != null) {
             user.setAvatar(avatarUrl);
             userRepository.save(user);
@@ -116,9 +117,9 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public boolean changePassword(String email, String newPassword) {
+    public boolean changePassword(String email, String oldPassword,String newPassword ) {
         User userOpt = userRepository.findByEmail(email);
-        if (userOpt != null) {
+        if (userOpt != null && passwordEncoder.matches(oldPassword, userOpt.getPassword())) {
             userOpt.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(userOpt);
             return true;
@@ -161,5 +162,18 @@ public class UserServiceImpl implements IUserService {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public User updateUser(UserRequest user, String email) {
+        User userOpt = userRepository.findByEmail(email);
+        if (userOpt != null) {
+            userOpt.setUsername(user.getUsername());
+            userOpt.setBio(user.getBio());
+            userOpt.setPhone(user.getPhone());
+            User newUser = userRepository.save(userOpt);
+            return newUser;
+        }
+        return null;
     }
 }

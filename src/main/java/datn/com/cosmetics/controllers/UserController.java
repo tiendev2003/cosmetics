@@ -1,6 +1,7 @@
 package datn.com.cosmetics.controllers;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import datn.com.cosmetics.bean.request.LoginRequest;
 import datn.com.cosmetics.bean.request.RegisterRequest;
+import datn.com.cosmetics.bean.request.UserRequest;
 import datn.com.cosmetics.bean.response.ApiResponse;
 import datn.com.cosmetics.config.auth.JWTGenerator;
 import datn.com.cosmetics.entity.User;
@@ -102,10 +104,10 @@ public class UserController {
     }
 
     @Operation(summary = "Update user information", description = "Update the avatar of the logged-in user")
-    @PutMapping("/update")
+    @PutMapping("/avatar")
     public ResponseEntity<ApiResponse<String>> updateUserInfo(
             @RequestHeader(name = "Authorization") String jwt,
-            @RequestBody String avatar) {
+            @RequestBody Map<String, String> avatar) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()
@@ -114,11 +116,32 @@ public class UserController {
         }
 
         String username = authentication.getName();
-        boolean updated = userService.changeAvatar(username, avatar);
+        boolean updated = userService.changeAvatar(username, avatar.get("avatar"));
         if (updated) {
             return ResponseEntity.ok(ApiResponse.success("User information updated successfully", ""));
         }
         return ResponseEntity.badRequest().body(ApiResponse.error("Failed to update user information"));
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<ApiResponse<User>> putMethodName(@RequestHeader(name = "Authorization") String jwt,
+
+            @RequestBody UserRequest entity) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+        }
+
+        String username = authentication.getName();
+        User updated = userService.updateUser(entity, username);
+        if (updated != null) {
+            return ResponseEntity.ok(ApiResponse.success(updated, "User information updated successfully"));
+        }
+        return ResponseEntity.badRequest().body(ApiResponse.error("Failed to update user information"));
+
     }
 
     @Operation(summary = "Send OTP email", description = "Send an OTP to the user's email for verification")
@@ -139,9 +162,19 @@ public class UserController {
 
     @Operation(summary = "Change user password", description = "Change the password of the user")
     @PostMapping("/change-password")
-    public ResponseEntity<ApiResponse<String>> changePassword(@RequestParam String email,
-            @RequestParam String newPassword) {
-        boolean changed = userService.changePassword(email, newPassword);
+    public ResponseEntity<ApiResponse<String>> changePassword(@RequestHeader(name = "Authorization") String jwt,
+            @RequestBody Map<String, String> body) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+        }
+        System.out.println(body);
+
+        String username = authentication.getName();
+        boolean changed = userService.changePassword(username, body.get("oldPassword"), body.get("newPassword"));
         if (changed) {
             return ResponseEntity.ok(ApiResponse.success("Password changed successfully", ""));
         }

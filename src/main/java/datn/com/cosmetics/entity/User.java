@@ -63,6 +63,10 @@ public class User implements UserDetails {
     @Column(name = "is_locked")
     private boolean isLocked;
 
+    private String bio;
+    private String phone;
+
+ 
     @Column(name = "otp")
     private String otp;
 

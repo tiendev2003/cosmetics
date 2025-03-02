@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,20 @@ public class FileStorageService {
             }
         }
         return deletedFiles;
+    }
+
+    public List<String> loadAllFiles() {
+        try {
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                return new ArrayList<>();
+            }
+            return Files.list(uploadPath)
+                    .map(path -> path.getFileName().toString())
+                    .collect(Collectors.toList());
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi khi tải danh sách file", e);
+        }
     }
 
 }

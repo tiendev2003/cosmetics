@@ -20,4 +20,16 @@ public class UploadServiceImpl implements IUploadService {
                 .map(fileName -> "/uploads/" + fileName)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public String uploadFile(MultipartFile file) throws IOException {
+        return "/uploads/" + fileStorageService.storeFile(file);
+    }
+
+    @Override
+    public List<String> getUploadedImages() throws IOException {
+        return fileStorageService.loadAllFiles().stream()
+                .map(fileName -> "/uploads/" + fileName)
+                .collect(Collectors.toList());
+    }
 }
