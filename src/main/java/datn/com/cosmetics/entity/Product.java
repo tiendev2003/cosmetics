@@ -1,5 +1,6 @@
 package datn.com.cosmetics.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 public class Product {
 
   @Id
@@ -35,8 +36,9 @@ public class Product {
 
   private String description;
 
-  private double price;
-  private double salePrice;
+  private BigDecimal price;
+  private BigDecimal salePrice;
+  private boolean isSale;
   private int stock;
   private String ingredients;
   private String productUsage;
@@ -61,5 +63,27 @@ public class Product {
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
   private LocalDateTime updatedDate = LocalDateTime.now();
+
+  public Product(Long id, String name, String description, BigDecimal price, BigDecimal salePrice, boolean isSale,
+      int stock, String ingredients, String productUsage, List<ProductImage> productImages, Category category,
+      Brand brand, List<Review> reviews, String status, LocalDateTime createdDate, LocalDateTime updatedDate,
+      BigDecimal discountPercentage) {
+    this.id = id;
+    this.name = name;
+    this.description = description;
+    this.price = price;
+    this.salePrice = salePrice;
+    this.isSale = isSale;
+    this.stock = stock;
+    this.ingredients = ingredients;
+    this.productUsage = productUsage;
+    this.productImages = productImages;
+    this.category = category;
+    this.brand = brand;
+    this.reviews = reviews;
+    this.status = status;
+    this.createdDate = createdDate;
+    this.updatedDate = updatedDate;
+  }
 
 }

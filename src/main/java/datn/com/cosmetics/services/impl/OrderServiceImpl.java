@@ -72,7 +72,7 @@ public class OrderServiceImpl implements IOrderService {
         Order order = new Order();
         order.setUser(user);
         order.setShippingAddress(address);
-        order.setTotalPrice(orderRequest.getTotalPrice());
+
         order.setStatus(OrderStatus.PENDING);
         order.setPaymentMethod(orderRequest.getPaymentMethod());
 
@@ -88,8 +88,7 @@ public class OrderServiceImpl implements IOrderService {
             orderItem.setProduct(productRepository.findById(itemRequest.getProductId())
                     .orElseThrow(() -> new IllegalArgumentException("Product not found")));
             orderItem.setQuantity(itemRequest.getQuantity());
-            orderItem.setPrice(itemRequest.getPrice());
-            orderItem.setDiscountedPrice(itemRequest.getDiscountedPrice());
+
             orderItemRepository.save(orderItem);
         });
 

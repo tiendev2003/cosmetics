@@ -1,5 +1,6 @@
 package datn.com.cosmetics.services.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import datn.com.cosmetics.bean.request.BrandRequest;
+import datn.com.cosmetics.bean.response.BrandCategoryProductDTO;
 import datn.com.cosmetics.entity.Brand;
 import datn.com.cosmetics.exceptions.DuplicateResourceException;
 import datn.com.cosmetics.exceptions.ResourceNotFoundException;
@@ -53,7 +55,7 @@ public class BrandServiceImpl implements IBrandService {
 
     private void validateBrand(BrandRequest brandRequest) {
         if (brandRequest.getName().isEmpty() || brandRequest.getDescription().isEmpty() ||
-            brandRequest.getImage().isEmpty() || brandRequest.getStatus() == null) {
+                brandRequest.getImage().isEmpty() || brandRequest.getStatus() == null) {
             throw new ValidationException("All fields are required");
         }
         // Add more validation logic as needed
@@ -83,5 +85,22 @@ public class BrandServiceImpl implements IBrandService {
             return brandRepository.findByNameContainingIgnoreCase(name, pageable);
         }
         return brandRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<BrandCategoryProductDTO> getTop5Brands() {
+        List<Object[]> results = brandRepository.getTop5BrandsWithCategoriesAndProductCount();
+        List<BrandCategoryProductDTO> dtos = new ArrayList<>();
+        for (Object[] row : results) {
+            BrandCategoryProductDTO dto = new BrandCategoryProductDTO();
+            dto.setBrandId((Long) row[0]);
+            dto.setBrandName((String) row[1]);
+            dto.setCategoryId((Long) row[2]);
+            dto.setCategoryName((String) row[3]);
+            dto.setProductCount((Long) row[4]);
+            dtos.add(dto);
+        }
+        return dtos;
+
     }
 }

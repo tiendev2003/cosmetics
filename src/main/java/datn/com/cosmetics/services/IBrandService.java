@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import datn.com.cosmetics.bean.request.BrandRequest;
+import datn.com.cosmetics.bean.response.BrandCategoryProductDTO;
 import datn.com.cosmetics.entity.Brand;
 
 public interface IBrandService {
@@ -20,4 +21,6 @@ public interface IBrandService {
     List<Brand> getAllBrands();
 
     Page<Brand> getAllBrands(String name, Pageable pageable);
+
+  public List<BrandCategoryProductDTO> getTop5Brands() ;
 }

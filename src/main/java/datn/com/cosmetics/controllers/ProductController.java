@@ -29,63 +29,94 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Product", description = "API for product management")
 public class ProductController {
 
-    @Autowired
-    private IProductService productService;
+        @Autowired
+        private IProductService productService;
 
-    @PostMapping
-    @Operation(summary = "Create a new product", description = "Create a new product with the provided details")
-    public ResponseEntity<ApiResponse<Product>> createProduct(
-            @Parameter(description = "Product request body", required = true) @RequestBody ProductRequest productRequest) {
-        Product product = productService.createProduct(productRequest);
-        ApiResponse<Product> response = ApiResponse.success(product, "Product created successfully");
-        return ResponseEntity.ok(response);
-    }
+        @PostMapping
+        @Operation(summary = "Create a new product", description = "Create a new product with the provided details")
+        public ResponseEntity<ApiResponse<Product>> createProduct(
+                        @Parameter(description = "Product request body", required = true) @RequestBody ProductRequest productRequest) {
+                Product product = productService.createProduct(productRequest);
+                ApiResponse<Product> response = ApiResponse.success(product, "Product created successfully");
+                return ResponseEntity.ok(response);
+        }
 
-    @PutMapping("/{id}")
-    @Operation(summary = "Update a product", description = "Update the details of an existing product by its ID")
-    public ResponseEntity<ApiResponse<Product>> updateProduct(
-            @Parameter(description = "Product ID", required = true) @PathVariable Long id,
-            @Parameter(description = "Product request body", required = true) @RequestBody ProductRequest productRequest) {
-        Product product = productService.updateProduct(id, productRequest);
-        ApiResponse<Product> response = ApiResponse.success(product, "Product updated successfully");
-        return ResponseEntity.ok(response);
-    }
+        @PutMapping("/{id}")
+        @Operation(summary = "Update a product", description = "Update the details of an existing product by its ID")
+        public ResponseEntity<ApiResponse<Product>> updateProduct(
+                        @Parameter(description = "Product ID", required = true) @PathVariable Long id,
+                        @Parameter(description = "Product request body", required = true) @RequestBody ProductRequest productRequest) {
+                Product product = productService.updateProduct(id, productRequest);
+                ApiResponse<Product> response = ApiResponse.success(product, "Product updated successfully");
+                return ResponseEntity.ok(response);
+        }
 
-    @DeleteMapping("/{id}")
-    @Operation(summary = "Delete a product", description = "Delete an existing product by its ID")
-    public ResponseEntity<ApiResponse<Void>> deleteProduct(
-            @Parameter(description = "Product ID", required = true) @PathVariable Long id) {
-        productService.deleteProduct(id);
-        ApiResponse<Void> response = ApiResponse.success(null, "Product deleted successfully");
-        return ResponseEntity.ok(response);
-    }
+        @DeleteMapping("/{id}")
+        @Operation(summary = "Delete a product", description = "Delete an existing product by its ID")
+        public ResponseEntity<ApiResponse<Void>> deleteProduct(
+                        @Parameter(description = "Product ID", required = true) @PathVariable Long id) {
+                productService.deleteProduct(id);
+                ApiResponse<Void> response = ApiResponse.success(null, "Product deleted successfully");
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Get a product by ID", description = "Retrieve a product by its unique ID")
-    public ResponseEntity<ApiResponse<Product>> getProductById(
-            @Parameter(description = "Product ID", required = true) @PathVariable Long id) {
-        Product product = productService.getProductById(id);
-        ApiResponse<Product> response = ApiResponse.success(product, "Product retrieved successfully");
-        return ResponseEntity.ok(response);
-    }
+        @GetMapping("/{id}")
+        @Operation(summary = "Get a product by ID", description = "Retrieve a product by its unique ID")
+        public ResponseEntity<ApiResponse<Product>> getProductById(
+                        @Parameter(description = "Product ID", required = true) @PathVariable Long id) {
+                Product product = productService.getProductById(id);
+                ApiResponse<Product> response = ApiResponse.success(product, "Product retrieved successfully");
+                return ResponseEntity.ok(response);
+        }
 
-    @GetMapping
-    @Operation(summary = "Get all products", description = "Retrieve all products with optional filters, sorting, and pagination")
-    public ResponseEntity<ApiResponse<List<Product>>> getAllProducts(
-            @Parameter(description = "Minimum price", required = false) @RequestParam(required = false) Double minPrice,
-            @Parameter(description = "Maximum price", required = false) @RequestParam(required = false) Double maxPrice,
-            @Parameter(description = "Brand ID", required = false) @RequestParam(required = false) Long brandId,
-            @Parameter(description = "Category ID", required = false) @RequestParam(required = false) Long categoryId,
-            @Parameter(description = "Sort by field", required = false) @RequestParam(required = false) String sortBy,
-            @Parameter(description = "Sort direction", required = false) @RequestParam(required = false) String sortDirection,
-            Pageable pageable) {
-        Page<Product> products = productService.getAllProducts(minPrice, maxPrice, brandId, categoryId, sortBy,
-                sortDirection, pageable);
-        ApiResponse.Pagination pagination = new ApiResponse.Pagination(products.getNumber(), products.getTotalPages(),
-                products.getTotalElements());
-        ApiResponse<List<Product>> response = ApiResponse.success(products.getContent(),
-                "Products retrieved successfully", pagination);
-        return ResponseEntity.ok(response);
-    }
+        @GetMapping
+        @Operation(summary = "Get all products", description = "Retrieve all products with optional filters, sorting, and pagination")
+        public ResponseEntity<ApiResponse<List<Product>>> getAllProducts(
+                        @Parameter(description = "Minimum price", required = false) @RequestParam(required = false) Double minPrice,
+                        @Parameter(description = "Maximum price", required = false) @RequestParam(required = false) Double maxPrice,
+                        @Parameter(description = "Brand ID", required = false) @RequestParam(required = false) Long brandId,
+                        @Parameter(description = "Category ID", required = false) @RequestParam(required = false) Long categoryId,
+                        @Parameter(description = "Sort by field", required = false) @RequestParam(required = false) String sortBy,
+                        @Parameter(description = "Sort direction", required = false) @RequestParam(required = false) String sortDirection,
+                        Pageable pageable) {
+                Page<Product> products = productService.getAllProducts(minPrice, maxPrice, brandId, categoryId, sortBy,
+                                sortDirection, pageable);
+                ApiResponse.Pagination pagination = new ApiResponse.Pagination(products.getNumber(),
+                                products.getTotalPages(),
+                                products.getTotalElements());
+                ApiResponse<List<Product>> response = ApiResponse.success(products.getContent(),
+                                "Products retrieved successfully", pagination);
+                return ResponseEntity.ok(response);
+        }
+
+        @GetMapping("/new-arrivals")
+        @Operation(summary = "Get new arrivals", description = "Retrieve the latest 10 products")
+        public ResponseEntity<ApiResponse<List<Product>>> getNewArrivals() {
+                List<Product> products = productService.getNewArrivals();
+
+                ApiResponse<List<Product>> response = ApiResponse.success(products,
+                                "New arrivals retrieved successfully");
+                return ResponseEntity.ok(response);
+        }
+
+        @GetMapping("/top-selling")
+        @Operation(summary = "Get top-selling products", description = "Retrieve the top 5 best-selling products")
+        public ResponseEntity<ApiResponse<List<Product>>> getTopSellingProducts() {
+                List<Product> products = productService.getTopSellingProducts();
+
+                ApiResponse<List<Product>> response = ApiResponse.success(products,
+                                "Top-selling products retrieved successfully");
+                return ResponseEntity.ok(response);
+        }
+
+        @GetMapping("/top-discounted")
+        @Operation(summary = "Get top discounted products", description = "Retrieve the top 10 products with the highest discount")
+        public ResponseEntity<ApiResponse<List<Product>>> getTopDiscountedProducts() {
+                List<Product> products = productService.getTopDiscountedProducts();
+
+                ApiResponse<List<Product>> response = ApiResponse.success(products,
+                                "Top discounted products retrieved successfully");
+                return ResponseEntity.ok(response);
+        }
 
 }

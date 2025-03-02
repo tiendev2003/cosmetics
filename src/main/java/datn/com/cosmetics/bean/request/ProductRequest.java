@@ -1,5 +1,6 @@
 package datn.com.cosmetics.bean.request;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import lombok.Data;
@@ -8,8 +9,9 @@ import lombok.Data;
 public class ProductRequest {
     private String name;
     private String description;
-    private double price;
-    private double salePrice;
+    private BigDecimal price;
+    private boolean isSale;
+    private BigDecimal salePrice;
     private int stock;
     private String ingredients;
     private String productUsage;

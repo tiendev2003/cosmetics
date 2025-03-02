@@ -90,4 +90,11 @@ public class BlogController {
         String message = "Blogs retrieved successfully";
         return ResponseEntity.ok(ApiResponse.success(blogs.getContent(), message, pagination));
     }
+
+    @GetMapping("/latest")
+    @Operation(summary = "Get top 4 latest blogs", description = "Retrieve the top 4 latest blogs")
+    public ResponseEntity<ApiResponse<List<Blog>>> getTop4LatestBlogs() {
+        List<Blog> blogs = blogService.getTop4LatestBlogs();
+        return ResponseEntity.ok(ApiResponse.success(blogs, "Top 4 latest blogs retrieved successfully"));
+    }
 }

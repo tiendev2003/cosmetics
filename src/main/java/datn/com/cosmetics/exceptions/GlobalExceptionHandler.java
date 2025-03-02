@@ -86,4 +86,22 @@ public class GlobalExceptionHandler {
                 System.currentTimeMillis());
     }
 
+    @ExceptionHandler(DuplicateDiscountNameException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDuplicateDiscountNameException(DuplicateDiscountNameException ex) {
+        return new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                System.currentTimeMillis());
+    }
+
+    @ExceptionHandler(DuplicateDiscountCodeException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleDuplicateDiscountCodeException(DuplicateDiscountCodeException ex) {
+        return new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                System.currentTimeMillis());
+    }
+
 }

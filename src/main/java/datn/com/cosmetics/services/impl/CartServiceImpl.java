@@ -1,5 +1,6 @@
 package datn.com.cosmetics.services.impl;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +38,10 @@ public class CartServiceImpl implements ICartService {
         Cart cart = cartRepository.findByUser(user).orElse(new Cart());
         cart.setUser(user);
 
+        BigDecimal unitPrice = product.isSale() && product.getSalePrice() != null
+                ? product.getSalePrice()
+                : product.getPrice();
+
         Optional<CartItem> existingCartItem = cart.getCartItems().stream()
                 .filter(item -> item.getProduct().getId().equals(product.getId()))
                 .findFirst();
@@ -50,12 +55,14 @@ public class CartServiceImpl implements ICartService {
             cartItem.setCart(cart);
             cartItem.setProduct(product);
             cartItem.setQuantity(cartRequest.getQuantity());
+            cartItem.setUnitPrice(unitPrice);
             cart.getCartItems().add(cartItem);
             cartItemRepository.save(cartItem);
         }
 
         cart.setTotal(cart.getCartItems().stream()
-                .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity()).sum());
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .mapToDouble(BigDecimal::doubleValue).sum());
         return cartRepository.save(cart);
     }
 
@@ -68,7 +75,8 @@ public class CartServiceImpl implements ICartService {
 
         Cart cart = cartItem.getCart();
         cart.setTotal(cart.getCartItems().stream()
-                .mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity()).sum());
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .mapToDouble(BigDecimal::doubleValue).sum());
         return cartRepository.save(cart);
     }
 
@@ -86,6 +94,12 @@ public class CartServiceImpl implements ICartService {
     public Cart getCartUser(String username) {
         User user = userRepository.findByEmail(username);
         return cartRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Cart not found"));
+    }
+    @Override
+    public BigDecimal calculateTotalAmount(Cart cart) {
+        return cart.getCartItems().stream()
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
 }

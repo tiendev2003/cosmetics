@@ -8,50 +8,49 @@ import org.springframework.stereotype.Repository;
 
 import datn.com.cosmetics.entity.Order;
 import datn.com.cosmetics.entity.OrderItem;
+import datn.com.cosmetics.entity.enums.OrderStatus;
 
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
-    // deleteByOrder
-    void deleteByOrder(Order id);
+    void deleteByOrder(Order order);
 
-    @Query("SELECT c.name AS categoryName, " +
-            "SUM(oi.price * oi.quantity) AS totalRevenue, " +
-            "SUM(oi.discountedPrice * oi.quantity) AS totalDiscountedRevenue, " +
+   @Query("SELECT c.name AS categoryName, " +
+            "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalRevenue, " +
+            "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalDiscountedRevenue, " +
             "COUNT(DISTINCT oi.order.id) AS totalOrders " +
             "FROM OrderItem oi " +
             "JOIN oi.product p " +
             "JOIN p.category c " +
-            "WHERE oi.order.status = 'DELIVERED' " +
+            "WHERE oi.order.status = :status " +
             "GROUP BY c.name " +
             "ORDER BY totalRevenue DESC")
-    List<Object[]> getCategoryRevenue();
+    List<Object[]> getCategoryRevenue(OrderStatus status);
 
-    // Tổng doanh thu theo danh mục, lọc theo năm
     @Query("SELECT c.name AS categoryName, " +
-            "SUM(oi.price * oi.quantity) AS totalRevenue, " +
-            "SUM(oi.discountedPrice * oi.quantity) AS totalDiscountedRevenue, " +
+            "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalRevenue, " +
+            "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalDiscountedRevenue, " +
             "COUNT(DISTINCT oi.order.id) AS totalOrders " +
             "FROM OrderItem oi " +
             "JOIN oi.product p " +
             "JOIN p.category c " +
-            "WHERE oi.order.status = 'DELIVERED' " +
+            "WHERE oi.order.status = :status " +
             "AND YEAR(oi.order.orderDate) = :year " +
             "GROUP BY c.name " +
             "ORDER BY totalRevenue DESC")
-    List<Object[]> getCategoryRevenueByYear(int year);
+    List<Object[]> getCategoryRevenueByYear(OrderStatus status, int year);
 
-    // Tổng doanh thu theo danh mục, lọc theo tháng & năm
     @Query("SELECT c.name AS categoryName, " +
-            "SUM(oi.price * oi.quantity) AS totalRevenue, " +
-            "SUM(oi.discountedPrice * oi.quantity) AS totalDiscountedRevenue, " +
+            "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalRevenue, " +
+            "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalDiscountedRevenue, " +
             "COUNT(DISTINCT oi.order.id) AS totalOrders " +
             "FROM OrderItem oi " +
             "JOIN oi.product p " +
             "JOIN p.category c " +
-            "WHERE oi.order.status = 'DELIVERED' " +
+            "WHERE oi.order.status = :status " +
             "AND MONTH(oi.order.orderDate) = :month " +
             "AND YEAR(oi.order.orderDate) = :year " +
             "GROUP BY c.name " +
             "ORDER BY totalRevenue DESC")
-    List<Object[]> getCategoryRevenueByMonthAndYear(int month, int year);
+    List<Object[]> getCategoryRevenueByMonthAndYear(OrderStatus status, int month, int year);
+
 }

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import datn.com.cosmetics.bean.response.CategoryRevenueDTO;
 import datn.com.cosmetics.bean.response.MonthlyRevenueDTO;
+import datn.com.cosmetics.entity.enums.OrderStatus;
 import datn.com.cosmetics.repository.OrderItemRepository;
 import datn.com.cosmetics.repository.OrderRepository;
 import datn.com.cosmetics.services.IReportService;
@@ -68,11 +69,11 @@ public class ReportServiceImpl implements IReportService {
         List<Object[]> results;
 
         if (month != null && year != null) {
-            results = orderItemRepository.getCategoryRevenueByMonthAndYear(month, year);
+            results = orderItemRepository.getCategoryRevenueByMonthAndYear(OrderStatus.DELIVERED,month, year);
         } else if (year != null) {
-            results = orderItemRepository.getCategoryRevenueByYear(year);
+            results = orderItemRepository.getCategoryRevenueByYear(OrderStatus.DELIVERED,year);
         } else {
-            results = orderItemRepository.getCategoryRevenue();
+            results = orderItemRepository.getCategoryRevenue(OrderStatus.DELIVERED);
         }
 
         return results.stream().map(obj -> new CategoryRevenueDTO(

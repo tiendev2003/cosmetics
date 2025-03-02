@@ -126,7 +126,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>tiendev</finalName>
+		<finalName>datn</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

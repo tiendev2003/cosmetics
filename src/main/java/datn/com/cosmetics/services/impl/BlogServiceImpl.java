@@ -2,10 +2,13 @@ package datn.com.cosmetics.services.impl;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import datn.com.cosmetics.bean.request.BlogRequest;
@@ -97,5 +100,11 @@ public class BlogServiceImpl implements IBlogService {
     @Override
     public void deleteBlog(Long id) {
         blogRepository.deleteById(id);
+    }
+
+    @Override
+    public List<Blog> getTop4LatestBlogs() {
+        Pageable pageable = PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "createdDate"));
+        return blogRepository.findAll(pageable).getContent();
     }
 }

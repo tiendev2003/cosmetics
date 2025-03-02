@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import datn.com.cosmetics.bean.request.BrandRequest;
 import datn.com.cosmetics.bean.response.ApiResponse;
+import datn.com.cosmetics.bean.response.BrandCategoryProductDTO;
 import datn.com.cosmetics.entity.Brand;
 import datn.com.cosmetics.exceptions.ValidationException;
 import datn.com.cosmetics.services.IBrandService;
@@ -86,4 +87,11 @@ public class BrandController {
         String message = "Brands retrieved successfully";
         return ResponseEntity.ok(ApiResponse.success(brands.getContent(), message, pagination));
     }
+
+    @GetMapping("/top5")
+    public ResponseEntity<ApiResponse<List<BrandCategoryProductDTO>>> getTop5Brands() {
+        List<BrandCategoryProductDTO> brands = brandService.getTop5Brands();
+        return ResponseEntity.ok(ApiResponse.success(brands, "Top 5 brands retrieved successfully"));
+    }
+
 }

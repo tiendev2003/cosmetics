@@ -1,10 +1,9 @@
 package datn.com.cosmetics;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -16,18 +15,18 @@ import datn.com.cosmetics.entity.Blog;
 import datn.com.cosmetics.entity.BlogCategory;
 import datn.com.cosmetics.entity.Brand;
 import datn.com.cosmetics.entity.Category;
-import datn.com.cosmetics.entity.Order;
-import datn.com.cosmetics.entity.OrderItem;
+import datn.com.cosmetics.entity.Discount;
 import datn.com.cosmetics.entity.Product;
 import datn.com.cosmetics.entity.ProductImage;
 import datn.com.cosmetics.entity.Tag;
 import datn.com.cosmetics.entity.User;
-import datn.com.cosmetics.entity.enums.OrderStatus;
+import datn.com.cosmetics.entity.enums.DiscountType;
 import datn.com.cosmetics.repository.AddressRepository;
 import datn.com.cosmetics.repository.BlogCategoryRepository;
 import datn.com.cosmetics.repository.BlogRepository;
 import datn.com.cosmetics.repository.BrandRepository;
 import datn.com.cosmetics.repository.CategoryRepository;
+import datn.com.cosmetics.repository.DiscountRepository;
 import datn.com.cosmetics.repository.OrderItemRepository;
 import datn.com.cosmetics.repository.OrderRepository;
 import datn.com.cosmetics.repository.ProductImageRepository;
@@ -62,6 +61,8 @@ public class DataSeeder implements CommandLineRunner {
     private OrderRepository orderRepository;
     @Autowired
     private OrderItemRepository orderItemRepository;
+    @Autowired
+    private DiscountRepository discountRepository;
 
     @Override
     public void run(String... args) {
@@ -74,6 +75,7 @@ public class DataSeeder implements CommandLineRunner {
             seedCategories();
             seedBlogs();
             seedProducts();
+            seedDiscounts();
             // seedOrders();
         } catch (Exception e) {
             e.printStackTrace();
@@ -172,27 +174,31 @@ public class DataSeeder implements CommandLineRunner {
 
             if (skincare != null && loreal != null) {
                 List<Product> products = List.of(
-                        new Product(null, "L'Oreal Revitalift Cream", "Anti-aging face cream", 300000, 250000, 50,
-                                "Retinol, Hyaluronic Acid", "Apply daily", null, skincare, loreal, null, "available",
-                                LocalDateTime.now(), LocalDateTime.now()),
-                        new Product(null, "Neutrogena Hydro Boost", "Water gel moisturizer", 240000, 190000, 30,
-                                "Hyaluronic Acid", "Use morning and night", null, skincare, loreal, null, "available",
-                                LocalDateTime.now(), LocalDateTime.now()),
-                        new Product(null, "CeraVe Hydrating Cleanser", "Facial cleanser for normal to dry skin", 150000,
-                                120000, 20, "Ceramides, Hyaluronic Acid", "Use twice daily", null, skincare, loreal,
-                                null, "available", LocalDateTime.now(), LocalDateTime.now()),
-                        new Product(null, "The Ordinary Niacinamide 10%", "Brightening serum", 120000, 90000, 40,
+                        new Product(null, "L'Oreal Revitalift Cream", "Anti-aging face cream",
+                                new BigDecimal("300000"), new BigDecimal("250000"), true, 50,
+                                "Retinol, Hyaluronic Acid", "Apply daily", null, skincare, loreal, null,
+                                "available", LocalDateTime.now(), LocalDateTime.now(), new BigDecimal("16.67")),
+                        new Product(null, "Neutrogena Hydro Boost", "Water gel moisturizer",
+                                new BigDecimal("240000"), new BigDecimal("190000"), true, 30,
+                                "Hyaluronic Acid", "Use morning and night", null, skincare, loreal, null,
+                                "available", LocalDateTime.now(), LocalDateTime.now(), new BigDecimal("20.83")),
+                        new Product(null, "CeraVe Hydrating Cleanser", "Facial cleanser for normal to dry skin",
+                                new BigDecimal("150000"), new BigDecimal("120000"), true, 20,
+                                "Ceramides, Hyaluronic Acid", "Use twice daily", null, skincare, loreal, null,
+                                "available", LocalDateTime.now(), LocalDateTime.now(), new BigDecimal("20.00")),
+                        new Product(null, "The Ordinary Niacinamide 10%", "Brightening serum",
+                                new BigDecimal("120000"), new BigDecimal("90000"), true, 40,
                                 "Niacinamide, Zinc", "Apply before moisturizer", null, skincare, loreal, null,
-                                "available", LocalDateTime.now(), LocalDateTime.now()),
+                                "available", LocalDateTime.now(), LocalDateTime.now(), new BigDecimal("25.00")),
                         new Product(null, "Clinique Dramatically Different Moisturizer",
-                                "Hydrates and strengthens skin barrier", 270000, 220000, 25,
-                                "Glycerin, Hyaluronic Acid",
-                                "Use daily", null, skincare, loreal, null, "available", LocalDateTime.now(),
-                                LocalDateTime.now()));
+                                "Hydrates and strengthens skin barrier", new BigDecimal("270000"),
+                                new BigDecimal("220000"), true, 25, "Glycerin, Hyaluronic Acid", "Use daily",
+                                null, skincare, loreal, null, "available", LocalDateTime.now(),
+                                LocalDateTime.now(), new BigDecimal("18.52")));
 
                 productRepository.saveAll(products);
 
-                // Thêm ảnh cho từng sản phẩm
+                // Add images for each product
                 for (Product product : products) {
                     List<ProductImage> images = List.of(
                             new ProductImage(null,
@@ -237,63 +243,63 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedOrders() {
         if (orderRepository.count() == 0) {
-            List<User> users = userRepository.findAll();
-            List<Product> products = productRepository.findAll();
-            Random random = new Random();
-
-            if (users.isEmpty() || products.isEmpty()) {
-                System.out.println("Không có đủ dữ liệu để tạo đơn hàng!");
-                return;
-            }
-
-            System.out.println("Bắt đầu seed đơn hàng...");
-
-            for (int i = 0; i < 15; i++) { // Seed 15 đơn hàng
-                User randomUser = users.get(random.nextInt(users.size()));
-
-                List<Address> userAddresses = addressRepository.findByUser(randomUser);
-                if (userAddresses.isEmpty()) {
-                    System.out.println("Không tìm thấy địa chỉ cho user: " + randomUser.getUsername());
-                    continue;
-                }
-
-                Address shippingAddress = userAddresses.get(random.nextInt(userAddresses.size()));
-
-                List<OrderItem> orderItems = products.stream()
-                        .limit(random.nextInt(3) + 1) // Mỗi đơn hàng có từ 1-3 sản phẩm
-                        .map(product -> new OrderItem(product, random.nextInt(5) + 1, product.getPrice(),
-                                product.getSalePrice()))
-                        .collect(Collectors.toList());
-
-                double totalPrice = orderItems.stream().mapToDouble(item -> item.getPrice() * item.getQuantity()).sum();
-                double totalDiscountedPrice = orderItems.stream()
-                        .mapToDouble(item -> item.getDiscountedPrice() * item.getQuantity()).sum();
-                double discount = totalPrice - totalDiscountedPrice;
-
-                Order order = new Order();
-                 order.setUser(randomUser);
-                order.setOrderDate(LocalDateTime.now().minusDays(random.nextInt(30)));
-                order.setDeliveryDate(order.getOrderDate().plusDays(random.nextInt(7) + 1));
-                order.setShippingAddress(shippingAddress);
-                order.setPaymentMethod(random.nextBoolean() ? "Credit Card" : "Cash on Delivery");
-                order.setStatus(random.nextBoolean() ? OrderStatus.DELIVERED : OrderStatus.PENDING);
-                order.setTotalPrice(totalPrice);
-                order.setTotalDiscountedPrice(totalDiscountedPrice);
-                order.setDiscount(discount);
-
-                System.out.println("Tạo đơn hàng: " + order.getOrderId() + " cho user: " + randomUser.getUsername());
-
-                Order savedOrder = orderRepository.save(order);
-
-                for (OrderItem item : orderItems) {
-                    item.setOrder(savedOrder);
-                }
-                orderItemRepository.saveAll(orderItems);
-            }
 
             System.out.println("Seed đơn hàng hoàn tất!");
         } else {
             System.out.println("Dữ liệu đơn hàng đã tồn tại, bỏ qua seed!");
+        }
+    }
+
+    private void seedDiscounts() {
+        if (discountRepository.count() == 0) {
+            List<Discount> discounts = List.of(
+
+                    new Discount("Giảm 10% đơn hàng từ 200K", "SALE10", DiscountType.PERCENTAGE, new BigDecimal("10"),
+                            new BigDecimal("200000"), new BigDecimal("50000"), 100, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(30), true),
+
+                    new Discount("Giảm 20% đơn hàng từ 500K", "SALE20", DiscountType.PERCENTAGE, new BigDecimal("20"),
+                            new BigDecimal("500000"), new BigDecimal("100000"), 50, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(30), true),
+
+                    new Discount("Giảm 50K đơn hàng từ 300K", "DISCOUNT50", DiscountType.FIXED,
+                            new BigDecimal("50000"),
+                            new BigDecimal("300000"), new BigDecimal("50000"), 200, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(60), true),
+
+                    new Discount("Miễn phí vận chuyển", "FREESHIP", DiscountType.FIXED, new BigDecimal("25000"),
+                            new BigDecimal("100000"), new BigDecimal("25000"), 500, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(15), true),
+
+                    new Discount("Giảm 15% cho đơn hàng từ 400K", "SUMMER15", DiscountType.PERCENTAGE,
+                            new BigDecimal("15"),
+                            new BigDecimal("400000"), new BigDecimal("80000"), 150, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(45), true),
+
+                    new Discount("Mừng năm mới! Giảm 30%", "NEWYEAR30", DiscountType.PERCENTAGE, new BigDecimal("30"),
+                            new BigDecimal("600000"), new BigDecimal("120000"), 80, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(30), true),
+
+                    new Discount("Giảm 50K cho đơn hàng từ 400K", "SPRING50", DiscountType.FIXED,
+                            new BigDecimal("50000"),
+                            new BigDecimal("400000"), new BigDecimal("50000"), 120, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(25), true),
+
+                    new Discount("Giảm 25% đơn hàng từ 350K", "AUTUMN25", DiscountType.PERCENTAGE, new BigDecimal("25"),
+                            new BigDecimal("350000"), new BigDecimal("90000"), 100, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(40), true),
+
+                    new Discount("Black Friday - Giảm 50% cực sốc!", "BLACKFRIDAY", DiscountType.PERCENTAGE,
+                            new BigDecimal("50"),
+                            new BigDecimal("700000"), new BigDecimal("150000"), 50, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(10), true),
+
+                    new Discount("Cyber Monday - Giảm ngay 75K", "CYBERMONDAY", DiscountType.FIXED,
+                            new BigDecimal("75000"),
+                            new BigDecimal("500000"), new BigDecimal("75000"), 60, 0, null,
+                            LocalDateTime.now(), LocalDateTime.now().plusDays(20), true));
+
+            discountRepository.saveAll(discounts);
         }
     }
 

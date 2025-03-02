@@ -82,6 +82,21 @@ public class ProductServiceImpl implements IProductService {
                 pageable);
     }
 
+    @Override
+    public List<Product> getNewArrivals( ) {
+        return productRepository.findNewArrivals();
+    }
+
+    @Override
+    public List<Product> getTopSellingProducts( ) {
+        return productRepository.findTopSellingProducts();
+    }
+
+    @Override
+    public List<Product> getTopDiscountedProducts( ) {
+        return productRepository.findTopDiscountedProducts();
+    }
+
     private void mapProductRequestToProduct(ProductRequest productRequest, Product product) {
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
@@ -106,7 +121,7 @@ public class ProductServiceImpl implements IProductService {
         if (productRequest.getName() == null || productRequest.getName().isEmpty()) {
             throw new RuntimeException("Product name is required");
         }
-        if (productRequest.getPrice() <= 0) {
+        if (productRequest.isSale() && productRequest.getSalePrice() == null) {
             throw new RuntimeException("Product price must be greater than zero");
         }
         if (productRequest.getCategoryId() == null) {

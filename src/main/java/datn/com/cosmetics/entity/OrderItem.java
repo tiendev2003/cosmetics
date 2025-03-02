@@ -1,5 +1,7 @@
 package datn.com.cosmetics.entity;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Entity;
@@ -30,14 +32,11 @@ public class OrderItem {
 
     private int quantity;
 
-    private double price;
+    private BigDecimal unitPrice;
 
-    private double discountedPrice;
-
-    public OrderItem(Product product, int quantity, double price, double discountedPrice) {
+    public OrderItem(Product product, int quantity, BigDecimal unitPrice) {
         this.product = product;
         this.quantity = quantity;
-        this.price = price;
-        this.discountedPrice = discountedPrice;
+        this.unitPrice =  unitPrice;
     }
 }

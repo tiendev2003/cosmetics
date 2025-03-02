@@ -1,5 +1,6 @@
 package datn.com.cosmetics.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,12 +36,6 @@ public class Order {
     @ManyToOne
     private User user;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OrderItem> orderItems = new ArrayList<>();
-
-    private LocalDateTime orderDate = LocalDateTime.now();
-
-    private LocalDateTime deliveryDate = LocalDateTime.now();
     @OneToOne
     private Address shippingAddress;
 
@@ -48,7 +43,11 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
-    private double totalPrice;
-    private double totalDiscountedPrice; // Đổi sang double
-    private double discount; // Sửa lỗi chính tả và đổi sang double
+    private BigDecimal totalAmount;
+    private BigDecimal discountAmount;
+    private BigDecimal finalAmount;
+    private LocalDateTime orderDate = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems = new ArrayList<>();
 }

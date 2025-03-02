@@ -1,5 +1,6 @@
 package datn.com.cosmetics.entity;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -30,6 +31,8 @@ public class CartItem {
     private Product product;
 
     private int quantity;
+    
+    private BigDecimal unitPrice;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdDate = LocalDateTime.now();
@@ -39,8 +42,10 @@ public class CartItem {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         CartItem cartItem = (CartItem) o;
         return id != null && id.equals(cartItem.id);
     }
