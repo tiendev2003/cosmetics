@@ -39,7 +39,7 @@ public class MomoController {
         }
     }
 
-    @GetMapping("/callback")
+    @PostMapping("/callback")
     public String callback(@RequestParam String orderId, @RequestParam String amount,
             @RequestParam(value = "resultCode") String resultCode, @RequestParam(value = "message") String message) {
         Long id = Long.parseLong(orderId);
