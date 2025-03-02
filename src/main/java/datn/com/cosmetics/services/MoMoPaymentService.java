@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import datn.com.cosmetics.config.MoMoConfig;
@@ -72,7 +73,7 @@ public class MoMoPaymentService {
         String response = restTemplate.postForObject(moMoConfig.getEndpoint(), entity, String.class);
 
         try {
-            Map<String, Object> responseMap = objectMapper.readValue(response, Map.class);
+            Map<String, Object> responseMap = objectMapper.readValue(response, new TypeReference<Map<String, Object>>() {});
             if ((int) responseMap.get("resultCode") != 0) {
                 throw new RuntimeException("MoMo payment failed: " + responseMap.get("message"));
             }

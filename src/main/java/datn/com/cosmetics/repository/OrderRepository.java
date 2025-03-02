@@ -2,20 +2,21 @@ package datn.com.cosmetics.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import datn.com.cosmetics.entity.Order;
 import datn.com.cosmetics.entity.User;
-
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByUser(User user);
 
     Order findByIdAndUser(Long id, User user);
-
+    Page<Order> findAll(Pageable pageable);
     List<Order> findByStatus(String status);
 
     List<Order> findByStatusAndUser(String status, User user);

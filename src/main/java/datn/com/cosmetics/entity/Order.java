@@ -3,10 +3,14 @@ package datn.com.cosmetics.entity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
+import datn.com.cosmetics.entity.enums.OrderStatus;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,8 +29,8 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_id")
-    private String orderId;
+    @Column(name = "order_id", nullable = false, unique = true)
+    private String orderId = UUID.randomUUID().toString();
 
     @ManyToOne
     private User user;
@@ -41,7 +45,8 @@ public class Order {
     private Address shippingAddress;
 
     private String paymentMethod;
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
     private double totalPrice;
     private double totalDiscountedPrice; // Đổi sang double

@@ -14,6 +14,7 @@ import datn.com.cosmetics.entity.Address;
 import datn.com.cosmetics.entity.Order;
 import datn.com.cosmetics.entity.OrderItem;
 import datn.com.cosmetics.entity.User;
+import datn.com.cosmetics.entity.enums.OrderStatus;
 import datn.com.cosmetics.repository.AddressRepository;
 import datn.com.cosmetics.repository.OrderItemRepository;
 import datn.com.cosmetics.repository.OrderRepository;
@@ -72,7 +73,7 @@ public class OrderServiceImpl implements IOrderService {
         order.setUser(user);
         order.setShippingAddress(address);
         order.setTotalPrice(orderRequest.getTotalPrice());
-        order.setStatus("PENDING");
+        order.setStatus(OrderStatus.PENDING);
         order.setPaymentMethod(orderRequest.getPaymentMethod());
 
         Order newOrder = orderRepository.save(order);
@@ -115,7 +116,7 @@ public class OrderServiceImpl implements IOrderService {
         if (!isValidStatus(status)) {
             throw new IllegalArgumentException("Invalid status: " + status);
         }
-        order.setStatus(status);
+        order.setStatus(OrderStatus.valueOf(status));
         return orderRepository.save(order);
     }
 

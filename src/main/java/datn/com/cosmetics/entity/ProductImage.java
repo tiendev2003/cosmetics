@@ -11,10 +11,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductImage {
 
   @Id
@@ -34,4 +38,11 @@ public class ProductImage {
   @JsonIgnore
   @JoinColumn(name = "product_id", nullable = false)
   private Product product;
+
+  public ProductImage(String image, String publicId, String status, Product product) {
+    this.image = image;
+    this.publicId = publicId;
+    this.status = status;
+    this.product = product;
+  }
 }

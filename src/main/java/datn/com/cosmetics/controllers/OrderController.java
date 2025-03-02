@@ -65,7 +65,9 @@ public class OrderController {
     @Operation(summary = "Get all orders", description = "Retrieve all orders with pagination")
     public ResponseEntity<ApiResponse<List<Order>>> getAllOrders(Pageable pageable) {
         Page<Order> orders = orderService.getAllOrders(pageable);
-        return ResponseEntity.ok(ApiResponse.success(orders.getContent(), "Orders retrieved successfully"));
+        ApiResponse.Pagination pagination = new ApiResponse.Pagination(orders.getNumber() + 1, orders.getTotalPages(),
+                orders.getTotalElements());
+        return ResponseEntity.ok(ApiResponse.success(orders.getContent(), "Orders retrieved successfully", pagination));
     }
 
     @GetMapping("/user")
