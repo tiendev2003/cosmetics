@@ -9,23 +9,26 @@ import datn.com.cosmetics.bean.request.ProductRequest;
 import datn.com.cosmetics.entity.Product;
 
 public interface IProductService {
-    Product createProduct(ProductRequest productRequest);
+        Product createProduct(ProductRequest productRequest);
 
-    Product updateProduct(Long id, ProductRequest productRequest);
+        Product updateProduct(Long id, ProductRequest productRequest);
 
-    void deleteProduct(Long id);
+        void deleteProduct(Long id);
 
-    Product getProductById(Long id);
+        Product getProductById(Long id);
 
-    Page<Product> getAllProducts(Double minPrice, Double maxPrice, Long brandId, Long categoryId, String sortBy,
-            String sortDirection, Pageable pageable);
+        Page<Product> getAllProducts(Double minPrice, Double maxPrice, Long brandId, Long categoryId, String sortBy,
+                        String sortDirection, Pageable pageable);
 
-    Page<Product> getProductsByFilter(Double minPrice, Double maxPrice, Long brandId, Long categoryId,
-            Pageable pageable);
+        Page<Product> getProductsByFilter(Double minPrice, Double maxPrice, Long brandId, Long categoryId,
+                        Pageable pageable);
 
-    List<Product> getNewArrivals();
+        List<Product> getNewArrivals();
 
-    List<Product> getTopSellingProducts();
+        List<Product> getTopSellingProducts();
 
-    List<Product> getTopDiscountedProducts();
+        List<Product> getTopDiscountedProducts();
+
+        // search
+        List<Product> searchProducts(String keyword);
 }

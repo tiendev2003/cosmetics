@@ -25,7 +25,12 @@ public class AddressServiceImpl implements IAddressService {
         if (addressRepository.existsByStreetAddressAndUser(address.getStreetAddress(), address.getUser())) {
             throw new DuplicateResourceException("Address already exists for this user");
         }
+        Address defaultAddress = addressRepository.findByUserAndDefaultAddressTrue(address.getUser().getId()).orElse(null);
+        if (defaultAddress == null) {
+            address.setDefault(true);
+        }
         validateAddress(address);
+        
         return addressRepository.save(address);
     }
 

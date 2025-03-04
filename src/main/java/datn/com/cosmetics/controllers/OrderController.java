@@ -1,10 +1,15 @@
 package datn.com.cosmetics.controllers;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,10 +27,12 @@ import datn.com.cosmetics.bean.request.OrderRequest;
 import datn.com.cosmetics.bean.request.StatusRequest;
 import datn.com.cosmetics.bean.response.ApiResponse;
 import datn.com.cosmetics.entity.Order;
+import datn.com.cosmetics.services.EmailService;
 import datn.com.cosmetics.services.IOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -34,6 +41,8 @@ public class OrderController {
 
     @Autowired
     private IOrderService orderService;
+    @Autowired
+    private EmailService emailService;
 
     @PostMapping
     @Operation(summary = "Create order", description = "Create a new order with the provided details")
@@ -100,5 +109,32 @@ public class OrderController {
             @Parameter(description = "Order ID", required = true) @PathVariable Long id) {
         orderService.deleteOrder(id);
         return ResponseEntity.ok(ApiResponse.success(null, "Order deleted successfully"));
+    }
+
+    @GetMapping("/{orderId}/download-pdf")
+    public ResponseEntity<byte[]> downloadOrderPdf(@PathVariable Long orderId) throws IOException {
+        Order order = orderService.getOrderById(orderId); // Tìm đơn hàng theo ID
+        byte[] pdfBytes = orderService.generateOrderPdf(order);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=order_" + orderId + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdfBytes);
+    }
+
+    @PostMapping("/send-email/{orderId}")
+    public ResponseEntity<ApiResponse<Void>> sendOrderEmail(@PathVariable Long orderId, @RequestBody String email) {
+        Order order = orderService.getOrderById(orderId); // Tìm đơn hàng theo ID
+        Map<String, Object> model = new HashMap<>();
+        model.put("order", order);
+        try {
+            emailService.sendOrderEmail(email, "Chi tiết đơn hàng #" + order.getOrderId(), "order-email", model);
+            return ResponseEntity.ok(ApiResponse.success(null, "Email sent successfully"));
+
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(ApiResponse.error("Failed to send email"));
+        }
+
     }
 }

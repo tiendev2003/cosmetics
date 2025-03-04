@@ -119,4 +119,11 @@ public class ProductController {
                 return ResponseEntity.ok(response);
         }
 
+        @GetMapping("/search")
+        public ResponseEntity<ApiResponse<List<Product>>> searchProduct(@RequestParam String keyword) {
+                List<Product> products = productService.searchProducts(keyword);
+                ApiResponse<List<Product>> response = ApiResponse.success(products, "Product searched successfully");
+                return ResponseEntity.ok(response);
+        }
+
 }

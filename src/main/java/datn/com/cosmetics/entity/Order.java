@@ -17,7 +17,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
 
@@ -30,13 +29,13 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "order_id", nullable = false, unique = true)
+    @Column(name = "order_id", nullable = false)
     private String orderId = UUID.randomUUID().toString();
 
     @ManyToOne
     private User user;
 
-    @OneToOne
+    @ManyToOne
     private Address shippingAddress;
 
     private String paymentMethod;

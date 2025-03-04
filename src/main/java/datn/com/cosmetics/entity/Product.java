@@ -54,6 +54,7 @@ public class Product {
   @ManyToOne
   @JoinColumn(name = "brand_id")
   private Brand brand;
+  @JsonManagedReference
   @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Review> reviews = new ArrayList<>();
 

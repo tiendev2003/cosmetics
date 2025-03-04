@@ -45,7 +45,7 @@ public class MomoController {
         Long id = Long.parseLong(orderId);
         if (resultCode.equals("0")) {
             // convert id string to long
-            orderService.changeStatusOrder(id, "PAID");
+            orderService.changeStatusOrder(id, "PROCESSING");
         } else {
             orderService.changeStatusOrder(id, "PENDING");
         }

@@ -1,5 +1,7 @@
 package datn.com.cosmetics.services;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -35,4 +37,23 @@ public class EmailService {
         // Gửi email
         mailSender.send(mimeMessage);
     }
+
+    public void sendOrderEmail(String to, String subject, String templateName, Map<String, Object> model)
+            throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        // Tạo nội dung email từ template Thymeleaf
+        Context context = new Context();
+        context.setVariables(model);
+        String htmlContent = templateEngine.process(templateName, context);
+
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(htmlContent, true);
+        helper.setFrom("trancongtien406@gmail.com");
+
+        mailSender.send(message);
+    }
+
 }

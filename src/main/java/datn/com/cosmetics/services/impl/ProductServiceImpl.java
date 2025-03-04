@@ -99,6 +99,11 @@ public class ProductServiceImpl implements IProductService {
         return productRepository.findTopDiscountedProducts();
     }
 
+    @Override
+    public List<Product> searchProducts(String keyword) {
+        return productRepository.searchProducts(keyword);
+    }
+
     private void mapProductRequestToProduct(ProductRequest productRequest, Product product) {
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
@@ -159,5 +164,6 @@ public class ProductServiceImpl implements IProductService {
             }
         }
     }
+    
 
 }

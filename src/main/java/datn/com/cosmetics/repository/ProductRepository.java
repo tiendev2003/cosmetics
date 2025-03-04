@@ -48,4 +48,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "WHERE p.isSale = true " +
             "ORDER BY (p.price - p.salePrice) / p.price DESC")
     List<Product> findTopDiscountedProducts();
+
+        @Query("SELECT p FROM Product p " +
+                "WHERE p.name LIKE %:keyword% " +
+                "OR p.description LIKE %:keyword%")
+        List<Product> searchProducts(@Param("keyword") String keyword);
 }

@@ -35,8 +35,12 @@ public class CartServiceImpl implements ICartService {
         Product product = productRepository.findById(cartRequest.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        Cart cart = cartRepository.findByUser(user).orElse(new Cart());
-        cart.setUser(user);
+        Cart cart = cartRepository.findByUser(user).orElseGet(() -> {
+            Cart newCart = new Cart();
+            newCart.setUser(user);
+            newCart.setTotal(0);
+            return cartRepository.save(newCart);
+        });
 
         BigDecimal unitPrice = product.isSale() && product.getSalePrice() != null
                 ? product.getSalePrice()
@@ -95,6 +99,7 @@ public class CartServiceImpl implements ICartService {
         User user = userRepository.findByEmail(username);
         return cartRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Cart not found"));
     }
+
     @Override
     public BigDecimal calculateTotalAmount(Cart cart) {
         return cart.getCartItems().stream()

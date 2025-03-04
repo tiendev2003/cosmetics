@@ -66,7 +66,6 @@ public class User implements UserDetails {
     private String bio;
     private String phone;
 
- 
     @Column(name = "otp")
     private String otp;
 
@@ -87,8 +86,7 @@ public class User implements UserDetails {
     @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
-
-    @JsonManagedReference
+    @JsonIgnore
     @OneToOne(mappedBy = "user")
     private Cart cart;
 

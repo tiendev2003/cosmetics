@@ -14,6 +14,6 @@ public class OrderRequest {
     List<OrderItemRequest> orderItems;
     BigDecimal totalAmount;
     BigDecimal discountAmount;
-    BigDecimal finalPrice;
+    BigDecimal finalAmount;
 
 }
