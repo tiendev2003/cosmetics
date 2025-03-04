@@ -20,6 +20,8 @@ public interface IOrderService { // Fixed typo in interface name
 
     Order changeStatusOrder(Long id, String status); // Fixed typo in method name
 
+    Order updateOrderStatusMomo( String id, String status);
+
     void deleteOrder(Long id);
     public byte[] generateOrderPdf(Order order) throws IOException;
 }

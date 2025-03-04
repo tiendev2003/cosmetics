@@ -26,7 +26,7 @@ public class ReviewServiceImpl implements IReviewService {
     private OrderItemRepository orderItemRepository;
     @Autowired
     private UserRepository userRepository;
-
+ 
     @Override
     public Review addReview(ReviewRequest reviewRequest, String username) {
         // kiểm tra sản phẩm đã được mua chưa
@@ -55,11 +55,13 @@ public class ReviewServiceImpl implements IReviewService {
 
     @Override
     public List<Review> getReviewByProductId(Long productId) {
-         Product product = productRepository.findById(productId).get();
+        Product product = productRepository.findById(productId).get();
         if (product == null) {
             return null;
         }
         return reviewRepository.findByProductId(product.getId());
     }
+
+    
 
 }

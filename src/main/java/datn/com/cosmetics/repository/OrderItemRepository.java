@@ -15,9 +15,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         void deleteByOrder(Order order);
 
         @Query("SELECT c.name AS categoryName, " +
-                        "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalRevenue, "
+                        "CAST(SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS double) AS totalRevenue, "
                         +
-                        "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalDiscountedRevenue, "
+                        "CAST(SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS double) AS totalDiscountedRevenue, "
                         +
                         "COUNT(DISTINCT oi.order.id) AS totalOrders " +
                         "FROM OrderItem oi " +
@@ -29,9 +29,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         List<Object[]> getCategoryRevenue(OrderStatus status);
 
         @Query("SELECT c.name AS categoryName, " +
-                        "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalRevenue, "
+                        "CAST(SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS double) AS totalRevenue, "
                         +
-                        "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalDiscountedRevenue, "
+                        "CAST(SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS double) AS totalDiscountedRevenue, "
                         +
                         "COUNT(DISTINCT oi.order.id) AS totalOrders " +
                         "FROM OrderItem oi " +
@@ -44,9 +44,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
         List<Object[]> getCategoryRevenueByYear(OrderStatus status, int year);
 
         @Query("SELECT c.name AS categoryName, " +
-                        "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalRevenue, "
+                        "CAST(SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS double) AS totalRevenue, "
                         +
-                        "SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS totalDiscountedRevenue, "
+                        "CAST(SUM(CASE WHEN p.isSale = true THEN oi.quantity * p.salePrice ELSE oi.quantity * oi.unitPrice END) AS double) AS totalDiscountedRevenue, "
                         +
                         "COUNT(DISTINCT oi.order.id) AS totalOrders " +
                         "FROM OrderItem oi " +
@@ -59,7 +59,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
                         "ORDER BY totalRevenue DESC")
         List<Object[]> getCategoryRevenueByMonthAndYear(OrderStatus status, int month, int year);
 
-   
         @Query("SELECT COUNT(oi) FROM OrderItem oi WHERE oi.order.user.id = :userId AND oi.product.id = :productId")
         int checkProductIsBought(Long userId, Long productId);
- }
+}

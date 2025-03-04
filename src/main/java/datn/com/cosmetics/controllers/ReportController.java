@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import datn.com.cosmetics.bean.response.CategoryRevenueDTO;
 import datn.com.cosmetics.bean.response.MonthlyRevenueDTO;
+import datn.com.cosmetics.bean.response.OrderStatusDTO;
 import datn.com.cosmetics.services.IReportService;
 
 @RestController
@@ -28,5 +29,10 @@ public class ReportController {
             @RequestParam(required = false) Integer month,
             @RequestParam(required = false) Integer year) {
         return reportService.calculateCategoryRevenue(month, year);
+    }
+   // get order status statistics
+    @GetMapping("/order-status-counts")
+    public List<OrderStatusDTO> getOrderStatusStatistics() {
+        return reportService.getOrderStatusStatistics();
     }
 }

@@ -34,6 +34,7 @@ public class MomoController {
             String payUrl = moMoPaymentService.paymentWithMomo(request.getOrderId(), request.getTotal());
             return ResponseEntity.ok(payUrl);
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             return ResponseEntity.status(500).body(
                     Map.of("error", e.getMessage()));
         }
@@ -42,12 +43,12 @@ public class MomoController {
     @PostMapping("/callback")
     public String callback(@RequestParam String orderId, @RequestParam String amount,
             @RequestParam(value = "resultCode") String resultCode, @RequestParam(value = "message") String message) {
-        Long id = Long.parseLong(orderId);
+       
         if (resultCode.equals("0")) {
             // convert id string to long
-            orderService.changeStatusOrder(id, "PROCESSING");
+            orderService.updateOrderStatusMomo(orderId, "PROCESSING");
         } else {
-            orderService.changeStatusOrder(id, "PENDING");
+            orderService.updateOrderStatusMomo(orderId, "PENDING");
         }
         return "";
     }

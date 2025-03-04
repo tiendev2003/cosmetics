@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import datn.com.cosmetics.bean.response.CategoryRevenueDTO;
 import datn.com.cosmetics.bean.response.MonthlyRevenueDTO;
+import datn.com.cosmetics.bean.response.OrderStatusDTO;
 import datn.com.cosmetics.entity.enums.OrderStatus;
 import datn.com.cosmetics.repository.OrderItemRepository;
 import datn.com.cosmetics.repository.OrderRepository;
@@ -69,9 +70,9 @@ public class ReportServiceImpl implements IReportService {
         List<Object[]> results;
 
         if (month != null && year != null) {
-            results = orderItemRepository.getCategoryRevenueByMonthAndYear(OrderStatus.DELIVERED,month, year);
+            results = orderItemRepository.getCategoryRevenueByMonthAndYear(OrderStatus.DELIVERED, month, year);
         } else if (year != null) {
-            results = orderItemRepository.getCategoryRevenueByYear(OrderStatus.DELIVERED,year);
+            results = orderItemRepository.getCategoryRevenueByYear(OrderStatus.DELIVERED, year);
         } else {
             results = orderItemRepository.getCategoryRevenue(OrderStatus.DELIVERED);
         }
@@ -83,6 +84,15 @@ public class ReportServiceImpl implements IReportService {
                 (long) obj[3] // totalOrders
         )).collect(Collectors.toList());
 
+    }
+
+    @Override
+    public List<OrderStatusDTO> getOrderStatusStatistics() {
+        List<Object[]> results = orderRepository.getOrderStatusStatistics();
+        return results.stream().map(obj -> new OrderStatusDTO(
+                (OrderStatus) obj[0], // status
+                (Long) obj[1] // orderCount
+        )).collect(Collectors.toList());
     }
 
 }

@@ -155,6 +155,24 @@ public class OrderServiceImpl implements IOrderService {
 
     @Override
     @Transactional
+    public Order updateOrderStatusMomo(String id, String status) {
+        Order order = orderRepository.findByIdOrder(id);
+        if (order == null) {
+            throw new IllegalArgumentException("Order not found");
+        }
+
+        if (!isValidStatus(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new IllegalArgumentException("Order has been cancelled");
+        }
+        order.setStatus(OrderStatus.valueOf(status));
+        return orderRepository.save(order);
+    }
+
+    @Override
+    @Transactional
     public void deleteOrder(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> null);
