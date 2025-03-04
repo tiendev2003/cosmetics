@@ -13,4 +13,6 @@ public interface IAddressService {
     List<Address> getAllAddresses();
     List<Address> getAllAddressesByUser(User user);
     void toggleDefaultAddress(Long addressId, User user);
+
+    Address getAddressDefault(User user);
 }

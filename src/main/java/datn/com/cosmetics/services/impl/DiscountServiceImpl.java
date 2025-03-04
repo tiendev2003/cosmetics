@@ -10,7 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import datn.com.cosmetics.dto.DiscountDTO;
+import datn.com.cosmetics.bean.response.DiscountDTO;
 import datn.com.cosmetics.entity.Cart;
 import datn.com.cosmetics.entity.CartItem;
 import datn.com.cosmetics.entity.Discount;
@@ -129,14 +129,28 @@ public class DiscountServiceImpl implements IDiscountService {
     public Discount updateDiscount(Long id, DiscountDTO discountDTO) {
         Discount discount = discountRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Discount not found"));
+
+        // Kiểm tra trùng lặp tên (chỉ khi tên thay đổi)
+        if (!discount.getName().equals(discountDTO.getName()) &&
+                discountRepository.existsByName(discountDTO.getName())) {
+            throw new RuntimeException("Discount name already exists: " + discountDTO.getName());
+        }
+
+        // Kiểm tra trùng lặp mã giảm giá (chỉ khi mã thay đổi)
+        if (!discount.getDiscountCode().equals(discountDTO.getDiscountCode()) &&
+                discountRepository.existsByDiscountCode(discountDTO.getDiscountCode())) {
+            throw new RuntimeException("Discount code already exists: " + discountDTO.getDiscountCode());
+        }
+
+        // Cập nhật thông tin
         discount.setName(discountDTO.getName());
         discount.setDiscountCode(discountDTO.getDiscountCode());
         discount.setDiscountValue(discountDTO.getDiscountValue());
         discount.setDiscountType(discountDTO.getDiscountType());
         discount.setMaxDiscountAmount(discountDTO.getMaxDiscountAmount());
         discount.setApplicableProductId(discountDTO.getApplicableProductId());
-        discountRepository.save(discount);
-        return discount;
+
+        return discountRepository.save(discount);
     }
 
     @Override

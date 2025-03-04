@@ -2,6 +2,8 @@ package datn.com.cosmetics.repository;
 
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -17,5 +19,9 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     // delete user by id
     void deleteById(Long id);
+
+    Page<User> findAll(Pageable pageable);
+
+    Page<User> findByEmailContaining(String email, Pageable pageable);
 
 }

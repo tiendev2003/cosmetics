@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
@@ -117,7 +118,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public boolean changePassword(String email, String oldPassword,String newPassword ) {
+    public boolean changePassword(String email, String oldPassword, String newPassword) {
         User userOpt = userRepository.findByEmail(email);
         if (userOpt != null && passwordEncoder.matches(oldPassword, userOpt.getPassword())) {
             userOpt.setPassword(passwordEncoder.encode(newPassword));
@@ -176,4 +177,14 @@ public class UserServiceImpl implements IUserService {
         }
         return null;
     }
+
+    @Override
+    public Page<User> getAllUser(String name, org.springframework.data.domain.Pageable pageable) {
+        if (name != null) {
+            return userRepository.findByEmailContaining(name, pageable);
+        }
+        return userRepository.findAll(pageable);
+    }
+
+    
 }

@@ -9,6 +9,7 @@ public interface ICartService {
     Cart addToCart(CartRequest cartRequest,String username);
     Cart updateQuantity(Long cartItemId, int quantity);
     void clearCart(String user);
+    void removeCartItem(Long cartItemId);
     Cart getCartUser(String username); // New method
     BigDecimal calculateTotalAmount(Cart cart); // New method
 }

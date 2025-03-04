@@ -102,4 +102,17 @@ public class CartServiceImpl implements ICartService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
+    @Override
+    public void removeCartItem(Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+        Cart cart = cartItem.getCart();
+        cart.getCartItems().remove(cartItem);
+        cartItemRepository.delete(cartItem);
+        cart.setTotal(cart.getCartItems().stream()
+                .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .mapToDouble(BigDecimal::doubleValue).sum());
+        cartRepository.save(cart);
+    }
+
 }

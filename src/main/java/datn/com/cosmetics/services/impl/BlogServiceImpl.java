@@ -1,13 +1,13 @@
 package datn.com.cosmetics.services.impl;
 
 import java.util.HashSet;
-import java.util.Set;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -48,10 +48,16 @@ public class BlogServiceImpl implements IBlogService {
         blog.setCategory(category);
         blog.setAuthor(userRepository.findByEmail(request.getAuthor()));
         Set<Tag> tags = new HashSet<>();
-        for (Long tagId : request.getTagIds()) {
-            Tag tag = tagRepository.findById(tagId)
-                    .orElseThrow(() -> new RuntimeException("Tag not found"));
-            tags.add(tag);
+        if (request.getTagNames() != null) {
+            for (String tagName : request.getTagNames()) {
+                Tag tag = tagRepository.findByName(tagName);
+                if (tag == null) {
+                    tag = new Tag();
+                    tag.setName(tagName);
+                    tag = tagRepository.save(tag);
+                }
+                tags.add(tag);
+            }
         }
         blog.setTags(tags);
 
@@ -87,10 +93,16 @@ public class BlogServiceImpl implements IBlogService {
         blog.setCategory(category);
 
         Set<Tag> tags = new HashSet<>();
-        for (Long tagId : request.getTagIds()) {
-            Tag tag = tagRepository.findById(tagId)
-                    .orElseThrow(() -> new RuntimeException("Tag not found"));
-            tags.add(tag);
+        if (request.getTagNames() != null) {
+            for (String tagName : request.getTagNames()) {
+                Tag tag = tagRepository.findByName(tagName);
+                if (tag == null) {
+                    tag = new Tag();
+                    tag.setName(tagName);
+                    tag = tagRepository.save(tag);
+                }
+                tags.add(tag);
+            }
         }
         blog.setTags(tags);
 

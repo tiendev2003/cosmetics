@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import datn.com.cosmetics.bean.request.BlogCategoryRequest;
 import datn.com.cosmetics.bean.response.ApiResponse;
+import datn.com.cosmetics.bean.response.BlogCategoryDTO;
 import datn.com.cosmetics.entity.BlogCategory;
 import datn.com.cosmetics.services.IBlogCategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,5 +77,10 @@ public class BlogCategoryController {
             @Parameter(description = "Blog category ID", required = true) @PathVariable Long id) {
         blogCategoryService.deleteBlogCategory(id);
         return new ResponseEntity<>(ApiResponse.success(null, "Blog category deleted successfully"), HttpStatus.NO_CONTENT);
+    }
+    @GetMapping("/blog-count")
+    public ResponseEntity<List<BlogCategoryDTO>> getCategoriesWithBlogCount() {
+        List<BlogCategoryDTO> categories = blogCategoryService.getAllCategoriesWithBlogCount();
+        return ResponseEntity.ok(categories);
     }
 }

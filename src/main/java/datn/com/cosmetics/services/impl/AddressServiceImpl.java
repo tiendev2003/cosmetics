@@ -18,6 +18,7 @@ public class AddressServiceImpl implements IAddressService {
 
     @Autowired
     private AddressRepository addressRepository;
+    
 
     @Override
     public Address createAddress(Address address) {
@@ -78,5 +79,9 @@ public class AddressServiceImpl implements IAddressService {
             }
             addressRepository.save(address);
         }
+    }
+    @Override
+    public Address getAddressDefault(User user) {
+        return addressRepository.findByUserAndDefaultAddressTrue(user.getId()).orElse(null);
     }
 }

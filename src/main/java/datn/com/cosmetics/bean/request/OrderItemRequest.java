@@ -7,5 +7,4 @@ public class OrderItemRequest {
     private Long productId;
     private int quantity;
     private double price;
-    private double discountedPrice;
 }

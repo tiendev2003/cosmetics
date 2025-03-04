@@ -43,8 +43,11 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     @Transactional
     public Order createOrder(OrderRequest orderRequest) {
+        System.out.println(
+                "orderRequest: " + orderRequest.getUsername() + " " + orderRequest.getAddress() + " " + orderRequest.getPaymentMethod() + " " + orderRequest.getTotalAmount() + " " + orderRequest.getDiscountAmount() + " " + orderRequest.getOrderItems()
+        );
         // Validate input
-        if (orderRequest.getTotalPrice() < 0 || orderRequest.getOrderItems().isEmpty()) {
+        if (orderRequest.getTotalAmount() ==null || orderRequest.getOrderItems().isEmpty()) {
             throw new IllegalArgumentException("Invalid order request");
         }
 
@@ -72,7 +75,9 @@ public class OrderServiceImpl implements IOrderService {
         Order order = new Order();
         order.setUser(user);
         order.setShippingAddress(address);
-
+        order.setTotalAmount(orderRequest.getTotalAmount());
+        order.setDiscountAmount(orderRequest.getDiscountAmount());
+        order.setFinalAmount(orderRequest.getFinalPrice());
         order.setStatus(OrderStatus.PENDING);
         order.setPaymentMethod(orderRequest.getPaymentMethod());
 
@@ -138,7 +143,7 @@ public class OrderServiceImpl implements IOrderService {
     }
 
     private boolean isValidStatus(String status) {
-        return List.of("PENDING", "CONFIRMED", "DELIVERED", "CANCELLED", "PAID", "SHIPPED").contains(status);
+        return OrderStatus.valueOf(status) != null;
     }
 
     private boolean isValidPaymentMethod(String paymentMethod) {

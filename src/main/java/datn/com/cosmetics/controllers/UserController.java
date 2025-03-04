@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,6 +13,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -194,9 +197,15 @@ public class UserController {
     // get all user
     @Operation(summary = "Get all user", description = "Get all user")
     @GetMapping("/all")
-    public ResponseEntity<ApiResponse<List<User>>> getAllUser() {
+    public ResponseEntity<ApiResponse<List<User>>> getAllUser(
+            @RequestParam(required = false) String search, Pageable pageable
+
+    ) {
         try {
-            return ResponseEntity.ok(ApiResponse.success(userService.getAllUser(), "Get all user successfully"));
+            Page<User> users = userService.getAllUser(search, pageable);
+            ApiResponse.Pagination pagination = new ApiResponse.Pagination(users.getNumber(), users.getTotalPages(),
+                    users.getTotalElements());
+            return ResponseEntity.ok(ApiResponse.success(users.getContent(), "Get all user successfully", pagination));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
@@ -227,8 +236,8 @@ public class UserController {
 
     // block user by id
     @Operation(summary = "Block user by id", description = "Block user by id")
-    @GetMapping("/block")
-    public ResponseEntity<ApiResponse<User>> blockUserById(@RequestParam Long id) {
+    @PutMapping("/block/{id}")
+    public ResponseEntity<ApiResponse<User>> blockUserById(@PathVariable Long id) {
         try {
             userService.blockUserById(id);
             return ResponseEntity.ok(ApiResponse.success(null, "Block user by id successfully"));

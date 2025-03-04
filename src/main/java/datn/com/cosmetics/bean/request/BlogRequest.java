@@ -1,7 +1,8 @@
 package datn.com.cosmetics.bean.request;
 
-import java.util.Set;
+import java.util.List;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -12,6 +13,7 @@ public class BlogRequest {
     private String title;
 
     @NotBlank(message = "Content is required")
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     private String image;
@@ -22,7 +24,8 @@ public class BlogRequest {
     @NotNull(message = "Category ID is required")
     private Long categoryId;
 
+
      private String author;
 
-    private Set<Long> tagIds;
+    private List<String> tagNames;
 }

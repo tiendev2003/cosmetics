@@ -33,6 +33,7 @@ public class BrandController {
 
     @Autowired
     private IBrandService brandService;
+   
 
     @PostMapping
     @Operation(summary = "Create a new brand", description = "Create a new brand with the provided details")
@@ -79,9 +80,9 @@ public class BrandController {
 
     @GetMapping
     @Operation(summary = "Get all brands", description = "Retrieve a list of all brands with optional search by name and pagination")
-    public ResponseEntity<ApiResponse<List<Brand>>> getAllBrands(@RequestParam(required = false) String name,
+    public ResponseEntity<ApiResponse<List<Brand>>> getAllBrands(@RequestParam(required = false) String search,
             Pageable pageable) {
-        Page<Brand> brands = brandService.getAllBrands(name, pageable);
+        Page<Brand> brands = brandService.getAllBrands(search, pageable);
         ApiResponse.Pagination pagination = new ApiResponse.Pagination(brands.getNumber() + 1, brands.getTotalPages(),
                 brands.getTotalElements());
         String message = "Brands retrieved successfully";

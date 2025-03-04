@@ -1,6 +1,7 @@
 
 package datn.com.cosmetics.bean.request;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import lombok.Data;
@@ -11,6 +12,8 @@ public class OrderRequest {
     Long address;
     String paymentMethod;
     List<OrderItemRequest> orderItems;
-    double totalPrice;
+    BigDecimal totalAmount;
+    BigDecimal discountAmount;
+    BigDecimal finalPrice;
 
 }

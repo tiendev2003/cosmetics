@@ -9,4 +9,5 @@ public interface IUploadService {
     List<String> uploadImages(MultipartFile[] files) throws IOException;
     String uploadFile(MultipartFile file) throws IOException;
     List<String> getUploadedImages() throws IOException;
+    public boolean deleteFile(String filename) ;
 }

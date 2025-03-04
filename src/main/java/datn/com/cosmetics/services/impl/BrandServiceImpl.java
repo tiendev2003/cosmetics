@@ -17,12 +17,16 @@ import datn.com.cosmetics.exceptions.ResourceNotFoundException;
 import datn.com.cosmetics.exceptions.ValidationException;
 import datn.com.cosmetics.repository.BrandRepository;
 import datn.com.cosmetics.services.IBrandService;
+import datn.com.cosmetics.services.IUploadService;
+import datn.com.cosmetics.utils.Extrac;
 
 @Service
 public class BrandServiceImpl implements IBrandService {
 
     @Autowired
     private BrandRepository brandRepository;
+    @Autowired
+    private IUploadService uploadService;
 
     @Override
     public Brand createBrand(BrandRequest brandRequest) {
@@ -43,6 +47,8 @@ public class BrandServiceImpl implements IBrandService {
         Optional<Brand> existingBrand = brandRepository.findById(id);
         if (existingBrand.isPresent()) {
             validateBrand(brandRequest);
+            String imagePath= new Extrac().extractFilenameFromUrl(existingBrand.get().getImage());
+            uploadService.deleteFile(imagePath);
             Brand updatedBrand = existingBrand.get();
             updatedBrand.setName(brandRequest.getName());
             updatedBrand.setDescription(brandRequest.getDescription());

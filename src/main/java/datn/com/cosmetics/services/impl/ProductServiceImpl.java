@@ -17,6 +17,7 @@ import datn.com.cosmetics.repository.CategoryRepository;
 import datn.com.cosmetics.repository.ProductImageRepository;
 import datn.com.cosmetics.repository.ProductRepository;
 import datn.com.cosmetics.services.IProductService;
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProductServiceImpl implements IProductService {
@@ -43,6 +44,7 @@ public class ProductServiceImpl implements IProductService {
         return product;
     }
 
+    @Transactional
     @Override
     public Product updateProduct(Long id, ProductRequest productRequest) {
         validateProductRequest(productRequest);
@@ -83,17 +85,17 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
-    public List<Product> getNewArrivals( ) {
+    public List<Product> getNewArrivals() {
         return productRepository.findNewArrivals();
     }
 
     @Override
-    public List<Product> getTopSellingProducts( ) {
+    public List<Product> getTopSellingProducts() {
         return productRepository.findTopSellingProducts();
     }
 
     @Override
-    public List<Product> getTopDiscountedProducts( ) {
+    public List<Product> getTopDiscountedProducts() {
         return productRepository.findTopDiscountedProducts();
     }
 
@@ -144,15 +146,12 @@ public class ProductServiceImpl implements IProductService {
     }
 
     private void updateProductImages(ProductRequest productRequest, Product product) {
-        List<ProductImage> existingImages = product.getProductImages();
-        List<String> newImageUrls = productRequest.getImages();
+        // Xóa tất cả ảnh cũ của sản phẩm
+        productImageRepository.deleteByProductId(product.getId());
 
-        // Remove images that are no longer in the request
-        existingImages.removeIf(image -> !newImageUrls.contains(image.getImage()));
-
-        // Add new images from the request
-        for (String imageUrl : newImageUrls) {
-            if (existingImages.stream().noneMatch(image -> image.getImage().equals(imageUrl))) {
+        // Thêm danh sách ảnh mới từ request
+        if (productRequest.getImages() != null && !productRequest.getImages().isEmpty()) {
+            for (String imageUrl : productRequest.getImages()) {
                 ProductImage productImage = new ProductImage();
                 productImage.setImage(imageUrl);
                 productImage.setProduct(product);
@@ -160,4 +159,5 @@ public class ProductServiceImpl implements IProductService {
             }
         }
     }
+
 }

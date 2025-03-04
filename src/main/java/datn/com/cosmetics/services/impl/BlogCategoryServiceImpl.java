@@ -1,14 +1,18 @@
 package datn.com.cosmetics.services.impl;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import datn.com.cosmetics.bean.request.BlogCategoryRequest;
+import datn.com.cosmetics.bean.response.BlogCategoryDTO;
 import datn.com.cosmetics.entity.BlogCategory;
 import datn.com.cosmetics.repository.BlogCategoryRepository;
 import datn.com.cosmetics.services.IBlogCategoryService;
+import jakarta.transaction.Transactional;
 
 @Service
 public class BlogCategoryServiceImpl implements IBlogCategoryService {
@@ -29,6 +33,7 @@ public class BlogCategoryServiceImpl implements IBlogCategoryService {
         return blogCategoryRepository.findById(id).orElseThrow(() -> new RuntimeException("Blog category not found"));
     }
 
+    @Transactional
     @Override
     public Page<BlogCategory> getAllBlogCategories(Pageable pageable, String name) {
         if (name != null && !name.isEmpty()) {
@@ -48,5 +53,10 @@ public class BlogCategoryServiceImpl implements IBlogCategoryService {
     @Override
     public void deleteBlogCategory(Long id) {
         blogCategoryRepository.deleteById(id);
+    }
+
+    @Override
+    public List<BlogCategoryDTO> getAllCategoriesWithBlogCount() {
+        return blogCategoryRepository.findAllCategoriesWithBlogCount();
     }
 }

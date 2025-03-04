@@ -45,7 +45,7 @@ public class BlogController {
                 || "anonymousUser".equals(authentication.getPrincipal())) {
             return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
         }
-
+        System.out.println("jwt: " + jwt);
         String username = authentication.getName();
         blogRequest.setAuthor(username);
         Blog createdBlog = blogService.createBlog(blogRequest);

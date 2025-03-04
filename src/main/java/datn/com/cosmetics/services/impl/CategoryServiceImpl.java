@@ -33,17 +33,25 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     public Category updateCategory(Long id, CategoryRequest categoryRequest) {
-        checkDuplicateCategoryName(categoryRequest.getName());
-        Optional<Category> existingCategory = categoryRepository.findById(id);
-        if (existingCategory.isPresent()) {
-            Category updatedCategory = existingCategory.get();
-            updatedCategory.setName(categoryRequest.getName());
-            updatedCategory.setDescription(categoryRequest.getDescription());
-            updatedCategory.setImage(categoryRequest.getImage());
-            updatedCategory.setStatus(categoryRequest.getStatus());
-            return categoryRepository.save(updatedCategory);
+        Optional<Category> existingCategoryOpt = categoryRepository.findById(id);
+
+        if (existingCategoryOpt.isEmpty()) {
+            return null; // Hoặc throw new NotFoundException("Category not found");
         }
-        return null;
+
+        Category existingCategory = existingCategoryOpt.get();
+
+        // Chỉ kiểm tra trùng lặp nếu người dùng thay đổi tên
+        if (!existingCategory.getName().equals(categoryRequest.getName())) {
+            checkDuplicateCategoryName(categoryRequest.getName());
+        }
+
+        existingCategory.setName(categoryRequest.getName());
+        existingCategory.setDescription(categoryRequest.getDescription());
+        existingCategory.setImage(categoryRequest.getImage());
+        existingCategory.setStatus(categoryRequest.getStatus());
+
+        return categoryRepository.save(existingCategory);
     }
 
     @Override

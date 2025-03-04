@@ -68,6 +68,9 @@ public class AddressController {
         address.setCity(addressRequest.getCity());
         address.setState(addressRequest.getState());
         address.setZipCode(addressRequest.getZipCode());
+        address.setDefault(false);
+        address.setPhone(addressRequest.getPhone());
+        address.setEmail(addressRequest.getEmail());
         address.setUser(user);
         try {
             Address createdAddress = addressService.createAddress(address);
@@ -93,6 +96,8 @@ public class AddressController {
         address.setCity(addressRequest.getCity());
         address.setState(addressRequest.getState());
         address.setZipCode(addressRequest.getZipCode());
+        address.setPhone(addressRequest.getPhone());
+        address.setEmail(addressRequest.getEmail());
         try {
             Address updatedAddress = addressService.updateAddress(id, address);
             return ResponseEntity.ok(ApiResponse.success(updatedAddress, "Address updated successfully"));
@@ -101,7 +106,7 @@ public class AddressController {
         }
     }
 
-    @PutMapping("/{id}/toggle-default")
+    @PutMapping("/{id}/default")
     @Operation(summary = "Toggle default address", description = "Set the specified address as default and unset others")
     public ResponseEntity<ApiResponse<Void>> toggleDefaultAddress(
             @Parameter(description = "Address ID", required = true) @PathVariable Long id) {
@@ -152,4 +157,26 @@ public class AddressController {
         List<Address> addresses = addressService.getAllAddressesByUser(user);
         return ResponseEntity.ok(ApiResponse.success(addresses, "Addresses retrieved successfully"));
     }
+
+    @GetMapping("/default")
+    @Operation(summary = "Get default address", description = "Retrieve the default address for the authenticated user")
+    public ResponseEntity<ApiResponse<Address>> getDefaultAddress(
+            @RequestHeader(name = "Authorization", required = false) String jwt) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+        }
+
+        String username = authentication.getName();
+        System.out.println("username: " + username);
+        User user = userService.getUserInfo(username);
+        Address address = addressService.getAddressDefault(user);
+        if (address == null) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("No default address found"));
+        }
+        return ResponseEntity.ok(ApiResponse.success(address, "Default address retrieved successfully"));
+    }
+
 }

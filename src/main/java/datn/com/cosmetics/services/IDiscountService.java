@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.springframework.data.domain.Page;
 
-import datn.com.cosmetics.dto.DiscountDTO;
+import datn.com.cosmetics.bean.response.DiscountDTO;
 import datn.com.cosmetics.entity.CartItem;
 import datn.com.cosmetics.entity.Discount;
 

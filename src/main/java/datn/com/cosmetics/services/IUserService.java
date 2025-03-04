@@ -2,6 +2,9 @@ package datn.com.cosmetics.services;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import datn.com.cosmetics.bean.request.RegisterRequest;
 import datn.com.cosmetics.bean.request.UserRequest;
 import datn.com.cosmetics.entity.User;
@@ -30,6 +33,7 @@ public interface IUserService {
     User getUserByEmail(String email) throws UserNotFoundException;
 
     List<User> getAllUser();
+    Page<User> getAllUser(String name, Pageable pageable);
 
     boolean deleteUserById(Long id);
 

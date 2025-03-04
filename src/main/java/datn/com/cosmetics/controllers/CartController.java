@@ -68,11 +68,19 @@ public class CartController {
                 HttpStatus.OK);
     }
 
+    @DeleteMapping("/remove/{cartItemId}")
+    @Operation(summary = "Remove item from cart", description = "Remove an item from the cart by its unique ID")
+    public ResponseEntity<ApiResponse<Cart>> removeCartItem(
+            @Parameter(description = "Cart item ID", required = true) @PathVariable Long cartItemId) {
+        cartService.removeCartItem(cartItemId);
+        return new ResponseEntity<>(ApiResponse.success(null, "Cart item removed successfully"), HttpStatus.OK);
+    }
+
     @DeleteMapping("/clear")
     @Operation(summary = "Clear the cart", description = "Clear all items from the cart")
     public ResponseEntity<ApiResponse<Void>> clearCart(
             @Parameter(description = "Authorization token", required = true) @RequestHeader("Authorization") String token) {
-                if(token == null || token.isEmpty()) {
+        if (token == null || token.isEmpty()) {
             return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
         }
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
