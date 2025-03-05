@@ -26,6 +26,7 @@ import datn.com.cosmetics.bean.request.LoginRequest;
 import datn.com.cosmetics.bean.request.RegisterRequest;
 import datn.com.cosmetics.bean.request.UserRequest;
 import datn.com.cosmetics.bean.response.ApiResponse;
+import datn.com.cosmetics.bean.response.LoginResponse;
 import datn.com.cosmetics.config.auth.JWTGenerator;
 import datn.com.cosmetics.entity.User;
 import datn.com.cosmetics.exceptions.UserNotFoundException;
@@ -64,17 +65,16 @@ public class UserController {
 
     @Operation(summary = "Login user", description = "Authenticate user and return JWT token")
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<String>> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@RequestBody LoginRequest request) {
         try {
             User user = userService.login(request.getEmail(), request.getPassword());
             if (user == null) {
-                return ResponseEntity.badRequest().body(ApiResponse.error("Invalid email or password"));
+                throw new Exception("Invalid email or password");
             }
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-
-            return ResponseEntity
-                    .ok(ApiResponse.success(jwtGenerator.generateToken(authentication), "Login successfully"));
+            LoginResponse loginResponse = new LoginResponse(user, jwtGenerator.generateToken(authentication));
+            return ResponseEntity.ok(ApiResponse.success(loginResponse, "Login successfully"));
 
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
