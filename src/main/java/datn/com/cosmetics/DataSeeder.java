@@ -88,9 +88,9 @@ public class DataSeeder implements CommandLineRunner {
                         seedBlogs();
                         seedUsers();
                         seedAddresses();
-                        seedProducts();
                         seedDiscounts();
-                        seedOrders();
+                        // seedProducts();
+                        // seedOrders();
                 } catch (Exception e) {
                         e.printStackTrace();
                 }

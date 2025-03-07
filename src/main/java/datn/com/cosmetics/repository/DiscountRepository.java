@@ -13,6 +13,8 @@ public interface DiscountRepository extends JpaRepository<Discount, Long> {
 
     Page<Discount> findByDiscountCodeContainingIgnoreCase(String search, Pageable pageable);
 
+    Page<Discount> findByDiscountCodeContainingIgnoreCaseOrNameContainingIgnoreCase(String code, String name, Pageable pageable);
+
     boolean existsByDiscountCode(String discountCode);
 
     boolean existsByName(String discountName);

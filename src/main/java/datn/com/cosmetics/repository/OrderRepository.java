@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import datn.com.cosmetics.entity.Order;
@@ -52,4 +53,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
                         "FROM Order o " +
                         "GROUP BY o.status")
         List<Object[]> getOrderStatusStatistics();
+
+        @Query("SELECT o FROM Order o WHERE o.orderId LIKE %:orderId%")
+        Page<Order> searchByOrderId(@Param("orderId") String orderId, Pageable pageable);
 }

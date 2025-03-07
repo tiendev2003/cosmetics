@@ -135,4 +135,23 @@ public class DiscountController {
             return ResponseEntity.status(500).body(ApiResponse.error("Internal server error: " + e.getMessage()));
         }
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<Discount>>> searchDiscounts(
+            @RequestParam(required = false) String code,
+            @RequestParam(required = false) String name,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+            Page<Discount> discounts = discountService.searchDiscounts(code, name, page, size);
+            ApiResponse.Pagination pagination = new ApiResponse.Pagination(discounts.getNumber() + 1,
+                    discounts.getTotalPages(),
+                    discounts.getTotalElements());
+            String message = "Discounts retrieved successfully";
+
+            return ResponseEntity.ok(ApiResponse.success(discounts.getContent(), message, pagination));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Internal server error: " + e.getMessage()));
+        }
+    }
 }

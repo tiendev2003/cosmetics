@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import datn.com.cosmetics.bean.request.OrderRequest;
@@ -81,10 +82,16 @@ public class OrderController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all orders", description = "Retrieve all orders with pagination")
-    public ResponseEntity<ApiResponse<List<Order>>> getAllOrders(Pageable pageable) {
+    @Operation(summary = "Get all orders", description = "Retrieve all orders with pagination or search by order ID")
+    public ResponseEntity<ApiResponse<List<Order>>> getAllOrders(Pageable pageable,
+            @Parameter(description = "Order ID to search for", required = false) @RequestParam(required = false) String orderId) {
         try {
-            Page<Order> orders = orderService.getAllOrders(pageable);
+            Page<Order> orders;
+            if (orderId != null && !orderId.isEmpty()) {
+                orders = orderService.searchOrdersByOrderId(orderId, pageable);
+            } else {
+                orders = orderService.getAllOrders(pageable);
+            }
             ApiResponse.Pagination pagination = new ApiResponse.Pagination(orders.getNumber() + 1, orders.getTotalPages(),
                     orders.getTotalElements());
             return ResponseEntity.ok(ApiResponse.success(orders.getContent(), "Orders retrieved successfully", pagination));

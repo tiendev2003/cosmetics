@@ -24,4 +24,5 @@ public interface IOrderService { // Fixed typo in interface name
     void deleteOrder(Long id);
     Order findByOrderId(String orderId);
     public byte[] generateOrderPdf(Order order) throws IOException;
+    Page<Order> searchOrdersByOrderId(String orderId, Pageable pageable);
 }

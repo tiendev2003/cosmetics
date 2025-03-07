@@ -178,11 +178,16 @@ public class DiscountServiceImpl implements IDiscountService {
 
             // Update discount information
             discount.setName(discountDTO.getName());
+            discount.setMaxUsage(discountDTO.getMaxUsage());
+            discount.setMinOrderValue(discountDTO.getMinOrderValue());
+            discount.setIsActive(discountDTO.getIsActive());
             discount.setDiscountCode(discountDTO.getDiscountCode());
             discount.setDiscountValue(discountDTO.getDiscountValue());
             discount.setDiscountType(discountDTO.getDiscountType());
             discount.setMaxDiscountAmount(discountDTO.getMaxDiscountAmount());
             discount.setApplicableProductId(discountDTO.getApplicableProductId());
+            discount.setStartDate(discountDTO.getStartDate());
+            discount.setEndDate(discountDTO.getEndDate());
 
             return discountRepository.save(discount);
         } catch (ValidationException e) {
@@ -216,6 +221,17 @@ public class DiscountServiceImpl implements IDiscountService {
             }
         } catch (Exception e) {
             throw new RuntimeException("Error retrieving discounts: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public Page<Discount> searchDiscounts(String code, String name, int page, int size) {
+        try {
+            Pageable pageable = PageRequest.of(page, size);
+            return discountRepository.findByDiscountCodeContainingIgnoreCaseOrNameContainingIgnoreCase(code, name,
+                    pageable);
+        } catch (Exception e) {
+            throw new RuntimeException("Error searching discounts: " + e.getMessage());
         }
     }
 

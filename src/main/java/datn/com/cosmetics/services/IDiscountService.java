@@ -31,4 +31,6 @@ public interface IDiscountService {
     void checkDuplicateDiscountName(String name);
 
     void checkDuplicateDiscountCode(String code);
+
+    Page<Discount> searchDiscounts(String code, String name, int page, int size);
 }

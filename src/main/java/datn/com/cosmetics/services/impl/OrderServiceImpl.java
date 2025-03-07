@@ -224,6 +224,15 @@ public class OrderServiceImpl implements IOrderService {
         }
     }
 
+    @Override
+    public Page<Order> searchOrdersByOrderId(String orderId, Pageable pageable) {
+        try {
+            return orderRepository.searchByOrderId(orderId, pageable);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to search orders by order ID", e);
+        }
+    }
+
     private boolean isValidStatus(String status) {
         return OrderStatus.valueOf(status) != null;
     }

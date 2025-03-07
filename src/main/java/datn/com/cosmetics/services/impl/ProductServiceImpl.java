@@ -57,6 +57,7 @@ public class ProductServiceImpl implements IProductService {
     @Override
     public Product updateProduct(Long id, ProductRequest productRequest) {
         try {
+            System.out.println("ProductRequest: " + productRequest);
             validateProductRequest(productRequest);
             Product product = productRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
@@ -175,6 +176,7 @@ public class ProductServiceImpl implements IProductService {
         if (productRequest.getName() == null || productRequest.getName().isEmpty()) {
             throw new RuntimeException("Product name is required");
         }
+        System.out.println("ProductRequest: " + productRequest);
         if (productRequest.isSale() && productRequest.getSalePrice() == null) {
             throw new RuntimeException("Product price must be greater than zero");
         }
