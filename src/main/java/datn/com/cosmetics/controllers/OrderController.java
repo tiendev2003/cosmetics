@@ -49,49 +49,66 @@ public class OrderController {
     public ResponseEntity<ApiResponse<Order>> createOrder(
             @Parameter(description = "Order request body", required = true) @RequestBody OrderRequest orderRequest,
             @Parameter(description = "Authorization token", required = true) @RequestHeader("Authorization") String token) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()
+                    || "anonymousUser".equals(authentication.getPrincipal())) {
+                return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
+            }
+            String username = authentication.getName();
+            orderRequest.setUsername(username);
+            Order createdOrder = orderService.createOrder(orderRequest);
+            return ResponseEntity.ok(ApiResponse.success(createdOrder, "Order created successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Internal server error"));
         }
-        String username = authentication.getName();
-
-        orderRequest.setUsername(username);
-
-        Order createdOrder = orderService.createOrder(orderRequest);
-        return ResponseEntity.ok(ApiResponse.success(createdOrder, "Order created successfully"));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get order by ID", description = "Retrieve an order by its unique ID")
     public ResponseEntity<ApiResponse<Order>> getOrderById(
             @Parameter(description = "Order ID", required = true) @PathVariable Long id) {
-        Order order = orderService.getOrderById(id);
-        return ResponseEntity.ok(ApiResponse.success(order, "Order retrieved successfully"));
+        try {
+            Order order = orderService.getOrderById(id);
+            return ResponseEntity.ok(ApiResponse.success(order, "Order retrieved successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Internal server error"));
+        }
     }
 
     @GetMapping
     @Operation(summary = "Get all orders", description = "Retrieve all orders with pagination")
     public ResponseEntity<ApiResponse<List<Order>>> getAllOrders(Pageable pageable) {
-        Page<Order> orders = orderService.getAllOrders(pageable);
-        ApiResponse.Pagination pagination = new ApiResponse.Pagination(orders.getNumber() + 1, orders.getTotalPages(),
-                orders.getTotalElements());
-        return ResponseEntity.ok(ApiResponse.success(orders.getContent(), "Orders retrieved successfully", pagination));
+        try {
+            Page<Order> orders = orderService.getAllOrders(pageable);
+            ApiResponse.Pagination pagination = new ApiResponse.Pagination(orders.getNumber() + 1, orders.getTotalPages(),
+                    orders.getTotalElements());
+            return ResponseEntity.ok(ApiResponse.success(orders.getContent(), "Orders retrieved successfully", pagination));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Internal server error"));
+        }
     }
 
     @GetMapping("/user")
     @Operation(summary = "Get orders by user", description = "Retrieve all orders for the authenticated user")
     public ResponseEntity<ApiResponse<List<Order>>> getOrdersByUser(
             @Parameter(description = "Authorization token", required = true) @RequestHeader("Authorization") String token) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()
+                    || "anonymousUser".equals(authentication.getPrincipal())) {
+                return ResponseEntity.status(401).body(ApiResponse.error("Unauthorized"));
+            }
+            String username = authentication.getName();
+            List<Order> orders = orderService.getOrdersByUser(username);
+            return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Internal server error"));
         }
-        String username = authentication.getName();
-
-        List<Order> orders = orderService.getOrdersByUser(username);
-        return ResponseEntity.ok(ApiResponse.success(orders, "Orders retrieved successfully"));
     }
 
     @PutMapping("/{id}/status")
@@ -99,42 +116,61 @@ public class OrderController {
     public ResponseEntity<ApiResponse<Order>> changeStatusOrder(
             @Parameter(description = "Order ID", required = true) @PathVariable Long id,
             @Parameter(description = "New status", required = true) @RequestBody StatusRequest status) {
-        Order updatedOrder = orderService.changeStatusOrder(id, status.getStatus());
-        return ResponseEntity.ok(ApiResponse.success(updatedOrder, "Order status updated successfully"));
+        try {
+            Order updatedOrder = orderService.changeStatusOrder(id, status.getStatus());
+            return ResponseEntity.ok(ApiResponse.success(updatedOrder, "Order status updated successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Internal server error"));
+        }
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete order", description = "Delete an order by its ID")
     public ResponseEntity<ApiResponse<Void>> deleteOrder(
             @Parameter(description = "Order ID", required = true) @PathVariable Long id) {
-        orderService.deleteOrder(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Order deleted successfully"));
+        try {
+            orderService.deleteOrder(id);
+            return ResponseEntity.ok(ApiResponse.success(null, "Order deleted successfully"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Internal server error"));
+        }
     }
 
     @GetMapping("/{orderId}/download-pdf")
     public ResponseEntity<byte[]> downloadOrderPdf(@PathVariable Long orderId) throws IOException {
-        Order order = orderService.getOrderById(orderId); // Tìm đơn hàng theo ID
-        byte[] pdfBytes = orderService.generateOrderPdf(order);
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=order_" + orderId + ".pdf")
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdfBytes);
+        try {
+            Order order = orderService.getOrderById(orderId);
+            byte[] pdfBytes = orderService.generateOrderPdf(order);
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=order_" + orderId + ".pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdfBytes);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
     @PostMapping("/send-email/{orderId}")
     public ResponseEntity<ApiResponse<Void>> sendOrderEmail(@PathVariable Long orderId, @RequestBody String email) {
-        Order order = orderService.getOrderById(orderId); // Tìm đơn hàng theo ID
-        Map<String, Object> model = new HashMap<>();
-        model.put("order", order);
         try {
+            Order order = orderService.getOrderById(orderId);
+            Map<String, Object> model = new HashMap<>();
+            model.put("order", order);
             emailService.sendOrderEmail(email, "Chi tiết đơn hàng #" + order.getOrderId(), "order-email", model);
             return ResponseEntity.ok(ApiResponse.success(null, "Email sent successfully"));
-
         } catch (MessagingException e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body(ApiResponse.error("Failed to send email"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Internal server error"));
         }
-
     }
 }

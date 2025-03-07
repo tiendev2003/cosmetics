@@ -37,86 +37,109 @@ public class BlogServiceImpl implements IBlogService {
 
     @Override
     public Blog createBlog(BlogRequest request) {
-
-        Blog blog = new Blog();
-        blog.setTitle(request.getTitle());
-        blog.setContent(request.getContent());
-        blog.setImage(request.getImage());
-        blog.setStatus(request.getStatus());
-        BlogCategory category = blogCategoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        blog.setCategory(category);
-        blog.setAuthor(userRepository.findByEmail(request.getAuthor()));
-        Set<Tag> tags = new HashSet<>();
-        if (request.getTagNames() != null) {
-            for (String tagName : request.getTagNames()) {
-                Tag tag = tagRepository.findByName(tagName);
-                if (tag == null) {
-                    tag = new Tag();
-                    tag.setName(tagName);
-                    tag = tagRepository.save(tag);
+        try {
+            Blog blog = new Blog();
+            blog.setTitle(request.getTitle());
+            blog.setContent(request.getContent());
+            blog.setImage(request.getImage());
+            blog.setStatus(request.getStatus());
+            BlogCategory category = blogCategoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            blog.setCategory(category);
+            blog.setAuthor(userRepository.findByEmail(request.getAuthor()));
+            Set<Tag> tags = new HashSet<>();
+            if (request.getTagNames() != null) {
+                for (String tagName : request.getTagNames()) {
+                    Tag tag = tagRepository.findByName(tagName);
+                    if (tag == null) {
+                        tag = new Tag();
+                        tag.setName(tagName);
+                        tag = tagRepository.save(tag);
+                    }
+                    tags.add(tag);
                 }
-                tags.add(tag);
             }
-        }
-        blog.setTags(tags);
+            blog.setTags(tags);
 
-        return blogRepository.save(blog);
+            return blogRepository.save(blog);
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating blog: " + e.getMessage());
+        }
     }
 
     @Override
     public Blog getBlogById(Long id) {
-        return blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
+        try {
+            return blogRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Blog not found"));
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving blog: " + e.getMessage());
+        }
     }
 
     @Override
     public Page<Blog> getAllBlogs(Pageable pageable, String title) {
-        if (title != null && !title.isEmpty()) {
-            return blogRepository.findByTitleContaining(pageable, title);
+        try {
+            if (title != null && !title.isEmpty()) {
+                return blogRepository.findByTitleContaining(pageable, title);
+            }
+            return blogRepository.findAll(pageable);
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving blogs: " + e.getMessage());
         }
-        return blogRepository.findAll(pageable);
     }
 
     @Override
     public Blog updateBlog(Long id, BlogRequest request) {
-        Blog blog = blogRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Blog not found"));
+        try {
+            Blog blog = blogRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Blog not found"));
 
-        blog.setTitle(request.getTitle());
-        blog.setContent(request.getContent());
-        blog.setImage(request.getImage());
-        blog.setStatus(request.getStatus());
+            blog.setTitle(request.getTitle());
+            blog.setContent(request.getContent());
+            blog.setImage(request.getImage());
+            blog.setStatus(request.getStatus());
 
-        BlogCategory category = blogCategoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
-        blog.setCategory(category);
+            BlogCategory category = blogCategoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
+            blog.setCategory(category);
 
-        Set<Tag> tags = new HashSet<>();
-        if (request.getTagNames() != null) {
-            for (String tagName : request.getTagNames()) {
-                Tag tag = tagRepository.findByName(tagName);
-                if (tag == null) {
-                    tag = new Tag();
-                    tag.setName(tagName);
-                    tag = tagRepository.save(tag);
+            Set<Tag> tags = new HashSet<>();
+            if (request.getTagNames() != null) {
+                for (String tagName : request.getTagNames()) {
+                    Tag tag = tagRepository.findByName(tagName);
+                    if (tag == null) {
+                        tag = new Tag();
+                        tag.setName(tagName);
+                        tag = tagRepository.save(tag);
+                    }
+                    tags.add(tag);
                 }
-                tags.add(tag);
             }
-        }
-        blog.setTags(tags);
+            blog.setTags(tags);
 
-        return blogRepository.save(blog);
+            return blogRepository.save(blog);
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating blog: " + e.getMessage());
+        }
     }
 
     @Override
     public void deleteBlog(Long id) {
-        blogRepository.deleteById(id);
+        try {
+            blogRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Error deleting blog: " + e.getMessage());
+        }
     }
 
     @Override
     public List<Blog> getTop4LatestBlogs() {
-        Pageable pageable = PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "createdDate"));
-        return blogRepository.findAll(pageable).getContent();
+        try {
+            Pageable pageable = PageRequest.of(0, 4, Sort.by(Sort.Direction.DESC, "createdDate"));
+            return blogRepository.findAll(pageable).getContent();
+        } catch (Exception e) {
+            throw new RuntimeException("Error retrieving latest blogs: " + e.getMessage());
+        }
     }
 }

@@ -39,17 +39,24 @@ public class ReviewController {
 
         String username = authentication.getName();
 
-        Review review = reviewService.addReview(reviewRequest, username);
-        ApiResponse<Review> response = ApiResponse.success(review, "Review added successfully");
-        return ResponseEntity.ok(response);
+        try {
+            Review review = reviewService.addReview(reviewRequest, username);
+            ApiResponse<Review> response = ApiResponse.success(review, "Review added successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(ApiResponse.error(e.getMessage()));
+        }
     }
 
-    // get all review by product id
     @GetMapping("/{productId}")
     public ResponseEntity<ApiResponse<List<Review>>> getReviewByProductId(@PathVariable Long productId) {
-        List<Review> reviews = reviewService.getReviewByProductId(productId);
-        ApiResponse<List<Review>> response = ApiResponse.success(reviews, "Get review successfully");
-        return ResponseEntity.ok(response);
+        try {
+            List<Review> reviews = reviewService.getReviewByProductId(productId);
+            ApiResponse<List<Review>> response = ApiResponse.success(reviews, "Get review successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(400).body(ApiResponse.error(e.getMessage()));
+        }
     }
 
 }

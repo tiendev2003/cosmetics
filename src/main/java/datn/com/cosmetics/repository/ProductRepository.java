@@ -13,44 +13,46 @@ import datn.com.cosmetics.entity.Product;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-    Page<Product> findByPriceBetweenAndBrandIdAndCategoryId(Double minPrice, Double maxPrice, Long brandId,
-            Long categoryId, Pageable pageable);
+        Page<Product> findByPriceBetweenAndBrandIdAndCategoryId(Double minPrice, Double maxPrice, Long brandId,
+                        Long categoryId, Pageable pageable);
 
-    @Query("SELECT p FROM Product p WHERE "
-            + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
-            + "(:maxPrice IS NULL OR p.price <= :maxPrice) AND "
-            + "(:brandId IS NULL OR p.brand.id = :brandId) AND "
-            + "(:categoryId IS NULL OR p.category.id = :categoryId) "
-            + "ORDER BY "
-            + "CASE WHEN :sortBy = 'name' AND :sortDirection = 'asc' THEN p.name END ASC, "
-            + "CASE WHEN :sortBy = 'name' AND :sortDirection = 'desc' THEN p.name END DESC, "
-            + "CASE WHEN :sortBy = 'createdDate' AND :sortDirection = 'asc' THEN p.createdDate END ASC, "
-            + "CASE WHEN :sortBy = 'createdDate' AND :sortDirection = 'desc' THEN p.createdDate END DESC")
-    Page<Product> findByFilters(@Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice,
-            @Param("brandId") Long brandId,
-            @Param("categoryId") Long categoryId,
-            @Param("sortBy") String sortBy,
-            @Param("sortDirection") String sortDirection,
-            Pageable pageable);
+        @Query("SELECT p FROM Product p WHERE "
+                        + "(:minPrice IS NULL OR p.price >= :minPrice) AND "
+                        + "(:maxPrice IS NULL OR p.price <= :maxPrice) AND "
+                        + "(:brandId IS NULL OR p.brand.id = :brandId) AND "
+                        + "(:categoryId IS NULL OR p.category.id = :categoryId) AND "
+                        + "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) "
+                        + "ORDER BY "
+                        + "CASE WHEN :sortBy = 'name' AND :sortDirection = 'asc' THEN p.name END ASC, "
+                        + "CASE WHEN :sortBy = 'name' AND :sortDirection = 'desc' THEN p.name END DESC, "
+                        + "CASE WHEN :sortBy = 'createdDate' AND :sortDirection = 'asc' THEN p.createdDate END ASC, "
+                        + "CASE WHEN :sortBy = 'createdDate' AND :sortDirection = 'desc' THEN p.createdDate END DESC")
+        Page<Product> findByFilters(@Param("minPrice") Double minPrice,
+                        @Param("maxPrice") Double maxPrice,
+                        @Param("brandId") Long brandId,
+                        @Param("categoryId") Long categoryId,
 
-    @Query("SELECT p FROM Product p ORDER BY p.createdDate DESC")
-    List<Product> findNewArrivals();
+                        @Param("sortBy") String sortBy,
+                        @Param("sortDirection") String sortDirection,
+                        Pageable pageable, @Param("name") String search);
 
-    @Query("SELECT p FROM Product p " +
-            "JOIN OrderItem oi ON oi.product = p " +
-            "GROUP BY p.id " +
-            "HAVING SUM(oi.quantity) > 0 " +
-            "ORDER BY SUM(oi.quantity) DESC")
-    List<Product> findTopSellingProducts();
-
-    @Query("SELECT p FROM Product p " +
-            "WHERE p.isSale = true " +
-            "ORDER BY (p.price - p.salePrice) / p.price DESC")
-    List<Product> findTopDiscountedProducts();
+        @Query("SELECT p FROM Product p ORDER BY p.createdDate DESC")
+        List<Product> findNewArrivals(Pageable pageable);
 
         @Query("SELECT p FROM Product p " +
-                "WHERE p.name LIKE %:keyword% " +
-                "OR p.description LIKE %:keyword%")
+                        "JOIN OrderItem oi ON oi.product = p " +
+                        "GROUP BY p.id " +
+                        "HAVING SUM(oi.quantity) > 0 " +
+                        "ORDER BY SUM(oi.quantity) DESC")
+        List<Product> findTopSellingProducts(Pageable pageable);
+
+        @Query("SELECT p FROM Product p " +
+                        "WHERE p.isSale = true " +
+                        "ORDER BY (p.price - p.salePrice) / p.price DESC")
+        List<Product> findTopDiscountedProducts(Pageable pageable);
+
+        @Query("SELECT p FROM Product p " +
+                        "WHERE p.name LIKE %:keyword% " +
+                        "OR p.description LIKE %:keyword%")
         List<Product> searchProducts(@Param("keyword") String keyword);
 }

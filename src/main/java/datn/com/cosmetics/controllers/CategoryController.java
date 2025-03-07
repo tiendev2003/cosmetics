@@ -21,6 +21,7 @@ import datn.com.cosmetics.bean.response.ApiResponse;
 import datn.com.cosmetics.entity.Category;
 import datn.com.cosmetics.services.ICategoryService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -69,8 +70,9 @@ public class CategoryController {
     @GetMapping
     @Operation(summary = "Get all categories", description = "Retrieve a list of all categories with optional search by name and pagination")
     public ResponseEntity<ApiResponse<List<Category>>> getAllCategories(
-            @RequestParam(required = false) String name, Pageable pageable) {
-        Page<Category> categories = categoryService.getAllCategories(name, pageable);
+            @Parameter(description = "Search", required = false) @RequestParam(required = false) String search,
+            Pageable pageable) {
+        Page<Category> categories = categoryService.getAllCategories(search, pageable);
         ApiResponse.Pagination pagination = new ApiResponse.Pagination(categories.getNumber() + 1,
                 categories.getTotalPages(), categories.getTotalElements());
         String message = "Categories retrieved successfully";

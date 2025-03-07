@@ -24,6 +24,7 @@ import datn.com.cosmetics.bean.response.ApiResponse;
 import datn.com.cosmetics.entity.Blog;
 import datn.com.cosmetics.services.IBlogService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -39,62 +40,87 @@ public class BlogController {
     public ResponseEntity<ApiResponse<Blog>> createBlog(
             @RequestHeader(name = "Authorization", required = true) String jwt,
             @RequestBody BlogRequest blogRequest) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+            if (authentication == null || !authentication.isAuthenticated()
+                    || "anonymousUser".equals(authentication.getPrincipal())) {
+                return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+            }
+            System.out.println("jwt: " + jwt);
+            String username = authentication.getName();
+            blogRequest.setAuthor(username);
+            Blog createdBlog = blogService.createBlog(blogRequest);
+            return ResponseEntity.ok(ApiResponse.success(createdBlog, "Blog created successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Error creating blog: " + e.getMessage()));
         }
-        System.out.println("jwt: " + jwt);
-        String username = authentication.getName();
-        blogRequest.setAuthor(username);
-        Blog createdBlog = blogService.createBlog(blogRequest);
-        return ResponseEntity.ok(ApiResponse.success(createdBlog, "Blog created successfully"));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing blog", description = "Update the details of an existing blog by ID")
     public ResponseEntity<ApiResponse<Blog>> updateBlog(@PathVariable Long id,
             @RequestBody BlogRequest blogRequest) {
-        Blog updatedBlog = blogService.updateBlog(id, blogRequest);
-        if (updatedBlog != null) {
-            return ResponseEntity.ok(ApiResponse.success(updatedBlog, "Blog updated successfully"));
+        try {
+            Blog updatedBlog = blogService.updateBlog(id, blogRequest);
+            if (updatedBlog != null) {
+                return ResponseEntity.ok(ApiResponse.success(updatedBlog, "Blog updated successfully"));
+            }
+            return ResponseEntity.status(404).body(ApiResponse.error("Blog not found"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Error updating blog: " + e.getMessage()));
         }
-        return ResponseEntity.status(404).body(ApiResponse.error("Blog not found"));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a blog", description = "Delete a blog by ID")
     public ResponseEntity<ApiResponse<Void>> deleteBlog(@PathVariable Long id) {
-        blogService.deleteBlog(id);
-        return ResponseEntity.ok(ApiResponse.success(null, "Blog deleted successfully"));
+        try {
+            blogService.deleteBlog(id);
+            return ResponseEntity.ok(ApiResponse.success(null, "Blog deleted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Error deleting blog: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get blog by ID", description = "Retrieve a blog by its ID")
     public ResponseEntity<ApiResponse<Blog>> getBlogById(@PathVariable Long id) {
-        Blog blog = blogService.getBlogById(id);
-        if (blog != null) {
-            return ResponseEntity.ok(ApiResponse.success(blog, "Blog retrieved successfully"));
+        try {
+            Blog blog = blogService.getBlogById(id);
+            if (blog != null) {
+                return ResponseEntity.ok(ApiResponse.success(blog, "Blog retrieved successfully"));
+            }
+            return ResponseEntity.status(404).body(ApiResponse.error("Blog not found"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Error retrieving blog: " + e.getMessage()));
         }
-        return ResponseEntity.status(404).body(ApiResponse.error("Blog not found"));
     }
 
     @GetMapping
     @Operation(summary = "Get all blogs", description = "Retrieve a list of all blogs with optional search by title and pagination")
     public ResponseEntity<ApiResponse<List<Blog>>> getAllBlogs(
-            @RequestParam(required = false) String title, Pageable pageable) {
-        Page<Blog> blogs = blogService.getAllBlogs(pageable, title);
-        ApiResponse.Pagination pagination = new ApiResponse.Pagination(blogs.getNumber() + 1,
-                blogs.getTotalPages(), blogs.getTotalElements());
-        String message = "Blogs retrieved successfully";
-        return ResponseEntity.ok(ApiResponse.success(blogs.getContent(), message, pagination));
+            @Parameter(description = "Search", required = false) @RequestParam(required = false) String search,
+            Pageable pageable) {
+        try {
+            Page<Blog> blogs = blogService.getAllBlogs(pageable, search);
+            ApiResponse.Pagination pagination = new ApiResponse.Pagination(blogs.getNumber() + 1,
+                    blogs.getTotalPages(), blogs.getTotalElements());
+            String message = "Blogs retrieved successfully";
+            return ResponseEntity.ok(ApiResponse.success(blogs.getContent(), message, pagination));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Error retrieving blogs: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/latest")
     @Operation(summary = "Get top 4 latest blogs", description = "Retrieve the top 4 latest blogs")
     public ResponseEntity<ApiResponse<List<Blog>>> getTop4LatestBlogs() {
-        List<Blog> blogs = blogService.getTop4LatestBlogs();
-        return ResponseEntity.ok(ApiResponse.success(blogs, "Top 4 latest blogs retrieved successfully"));
+        try {
+            List<Blog> blogs = blogService.getTop4LatestBlogs();
+            return ResponseEntity.ok(ApiResponse.success(blogs, "Top 4 latest blogs retrieved successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(ApiResponse.error("Error retrieving latest blogs: " + e.getMessage()));
+        }
     }
 }

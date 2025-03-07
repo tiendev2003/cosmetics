@@ -19,6 +19,7 @@ import datn.com.cosmetics.repository.BrandRepository;
 import datn.com.cosmetics.services.IBrandService;
 import datn.com.cosmetics.services.IUploadService;
 import datn.com.cosmetics.utils.Extrac;
+import jakarta.transaction.Transactional;
 
 @Service
 public class BrandServiceImpl implements IBrandService {
@@ -47,8 +48,14 @@ public class BrandServiceImpl implements IBrandService {
         Optional<Brand> existingBrand = brandRepository.findById(id);
         if (existingBrand.isPresent()) {
             validateBrand(brandRequest);
-            String imagePath= new Extrac().extractFilenameFromUrl(existingBrand.get().getImage());
-            uploadService.deleteFile(imagePath);
+            if (!brandRequest.getName().equals(existingBrand.get().getName())
+                    && brandRepository.existsByName(brandRequest.getName())) {
+                throw new DuplicateResourceException("Brand already exists with this name");
+            }
+            if (!brandRequest.getImage().equals(existingBrand.get().getImage())) {
+                String imagePath = new Extrac().extractFilenameFromUrl(existingBrand.get().getImage());
+                uploadService.deleteFile(imagePath);
+            }
             Brand updatedBrand = existingBrand.get();
             updatedBrand.setName(brandRequest.getName());
             updatedBrand.setDescription(brandRequest.getDescription());
@@ -67,11 +74,14 @@ public class BrandServiceImpl implements IBrandService {
         // Add more validation logic as needed
     }
 
+    @Transactional
     @Override
     public void deleteBrand(Long id) {
         if (!brandRepository.existsById(id)) {
             throw new ResourceNotFoundException("Brand not found");
         }
+         String imagePath = new Extrac().extractFilenameFromUrl(brandRepository.findById(id).get().getImage());
+        uploadService.deleteFile(imagePath);
         brandRepository.deleteById(id);
     }
 

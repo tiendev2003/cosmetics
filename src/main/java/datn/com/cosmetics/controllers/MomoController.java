@@ -12,7 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import datn.com.cosmetics.bean.request.MomoPaymentRequest;
+import datn.com.cosmetics.bean.response.MomoResponse;
 import datn.com.cosmetics.config.MoMoConfig;
+import datn.com.cosmetics.entity.Order;
+import datn.com.cosmetics.services.ICartService;
 import datn.com.cosmetics.services.IOrderService;
 import datn.com.cosmetics.services.MoMoPaymentService;
 
@@ -28,6 +31,9 @@ public class MomoController {
     @Autowired
     private IOrderService orderService;
 
+    @Autowired
+    private ICartService cartService;
+
     @PostMapping("")
     public ResponseEntity<?> paymentWithMomo(@RequestBody MomoPaymentRequest request) {
         try {
@@ -41,14 +47,22 @@ public class MomoController {
     }
 
     @PostMapping("/callback")
-    public String callback(@RequestParam String orderId, @RequestParam String amount,
-            @RequestParam(value = "resultCode") String resultCode, @RequestParam(value = "message") String message) {
-       
-        if (resultCode.equals("0")) {
+    public String callback(@RequestBody MomoResponse response) {
+        
+        System.out.println(response);
+        Order order = orderService.findByOrderId(response.getOrderId());
+        if (order == null) {
+            return "";
+        }
+
+        if (response.getResultCode() == 0) {
             // convert id string to long
-            orderService.updateOrderStatusMomo(orderId, "PROCESSING");
+            orderService.updateOrderStatusMomo(response.getOrderId(), "PROCESSING");
+            cartService.clearCart(order.getUser().getEmail());
+
         } else {
-            orderService.updateOrderStatusMomo(orderId, "PENDING");
+            // xoá order và order item 
+            orderService.deleteOrder(order.getId());
         }
         return "";
     }

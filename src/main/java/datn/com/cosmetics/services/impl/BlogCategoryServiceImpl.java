@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -57,6 +58,8 @@ public class BlogCategoryServiceImpl implements IBlogCategoryService {
 
     @Override
     public List<BlogCategoryDTO> getAllCategoriesWithBlogCount() {
-        return blogCategoryRepository.findAllCategoriesWithBlogCount();
+        Pageable pageable = PageRequest.of(0, 5);
+        List<BlogCategoryDTO> top5Categories = blogCategoryRepository.findTop5CategoriesWithBlogCount(pageable);
+        return top5Categories;
     }
 }

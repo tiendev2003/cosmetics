@@ -29,6 +29,10 @@ public class Review {
   private Product product;
 
   @ManyToOne
+  @JsonIgnore
+  private OrderItem orderItem;
+  
+  @ManyToOne
   @JoinColumn(name = "user_id")
   private User user;
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")

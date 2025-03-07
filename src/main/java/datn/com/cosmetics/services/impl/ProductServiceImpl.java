@@ -1,11 +1,16 @@
 package datn.com.cosmetics.services.impl;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import datn.com.cosmetics.bean.request.ProductRequest;
 import datn.com.cosmetics.entity.Brand;
@@ -36,46 +41,85 @@ public class ProductServiceImpl implements IProductService {
 
     @Override
     public Product createProduct(ProductRequest productRequest) {
-        validateProductRequest(productRequest);
-        Product product = new Product();
-        mapProductRequestToProduct(productRequest, product);
-        product = productRepository.save(product);
-        saveProductImages(productRequest, product);
-        return product;
+        try {
+            validateProductRequest(productRequest);
+            Product product = new Product();
+            mapProductRequestToProduct(productRequest, product);
+            product = productRepository.save(product);
+            saveProductImages(productRequest, product);
+            return product;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
     }
 
     @Transactional
     @Override
     public Product updateProduct(Long id, ProductRequest productRequest) {
-        validateProductRequest(productRequest);
-        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
-        mapProductRequestToProduct(productRequest, product);
-        updateProductImages(productRequest, product);
-        productRepository.save(product);
-        // Refresh the product entity to ensure updated data is returned
-        product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
-        return product;
+        try {
+            validateProductRequest(productRequest);
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+            mapProductRequestToProduct(productRequest, product);
+            updateProductImages(productRequest, product);
+            productRepository.save(product);
+            // Refresh the product entity to ensure updated data is returned
+            product = productRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+            return product;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        }
     }
 
     @Override
     public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
+        try {
+            productRepository.deleteById(id);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
     }
 
     @Override
     public Product getProductById(Long id) {
-        return productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+        try {
+            return productRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+        }
     }
 
     @Override
     public Page<Product> getAllProducts(Double minPrice, Double maxPrice, Long brandId, Long categoryId, String sortBy,
-            String sortDirection, Pageable pageable) {
-        if (minPrice != null || maxPrice != null || brandId != null || categoryId != null) {
-            return productRepository.findByFilters(minPrice, maxPrice, brandId, categoryId, sortBy, sortDirection,
-                    pageable);
+            String sortDirection, Pageable pageable, String search) {
+        try {
+            if (minPrice != null || maxPrice != null || brandId != null || categoryId != null || sortBy != null
+                    || sortDirection != null || search != null) {
+                
+                // Nếu sortDirection là null, đặt mặc định là "asc"
+                Sort.Direction direction = Sort.Direction.ASC; // Giá trị mặc định
+                if (sortDirection != null) {
+                    direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+                }
+    
+                // Nếu sortBy không hợp lệ, mặc định sắp xếp theo "name"
+                List<String> allowedSortFields = Arrays.asList("name", "createdDate", "price");
+                if (sortBy == null || !allowedSortFields.contains(sortBy)) {
+                    sortBy = "name";
+                }
+    
+                pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(direction, sortBy));
+                return productRepository.findByFilters(minPrice, maxPrice, brandId, categoryId, sortBy, sortDirection,
+                        pageable, search);
+            }
+            return productRepository.findAll(pageable);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lỗi khi lấy danh sách sản phẩm: " + e.getMessage(), e);
         }
-        return productRepository.findAll(pageable);
     }
+    
 
     @Override
     public Page<Product> getProductsByFilter(Double minPrice, Double maxPrice, Long brandId, Long categoryId,
@@ -86,17 +130,20 @@ public class ProductServiceImpl implements IProductService {
 
     @Override
     public List<Product> getNewArrivals() {
-        return productRepository.findNewArrivals();
+        List<Product> newArrivals = productRepository.findNewArrivals(PageRequest.of(0, 10));
+        return newArrivals;
     }
 
     @Override
     public List<Product> getTopSellingProducts() {
-        return productRepository.findTopSellingProducts();
+        List<Product> topSelling = productRepository.findTopSellingProducts(PageRequest.of(0, 10));
+        return topSelling;
     }
 
     @Override
     public List<Product> getTopDiscountedProducts() {
-        return productRepository.findTopDiscountedProducts();
+        List<Product> topDiscounted = productRepository.findTopDiscountedProducts(PageRequest.of(0, 10));
+        return topDiscounted;
     }
 
     @Override
@@ -164,6 +211,5 @@ public class ProductServiceImpl implements IProductService {
             }
         }
     }
-    
 
 }

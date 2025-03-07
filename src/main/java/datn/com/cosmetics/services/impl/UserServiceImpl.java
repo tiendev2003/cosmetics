@@ -38,103 +38,210 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public User login(String username, String password) {
-        User user = userRepository.findByEmail(username);
-        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return user;
+        try {
+            User user = userRepository.findByEmail(username);
+            if (user != null && user.isLocked() == true) {
+                throw new Exception("User is locked");
+            }
+            if (user != null && passwordEncoder.matches(password, user.getPassword())) {
+                return user;
+            }
+            return null;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
-        return null;
+
     }
 
     @Override
     public User register(RegisterRequest user) {
-        if (userRepository.existsByEmail(user.getEmail())) {
-            return null;
-        }
-        User newUser = new User();
-        newUser.setUsername(user.getUsername());
-        newUser.setPassword(user.getPassword());
-        newUser.setEmail(user.getEmail());
+        try {
+            if (userRepository.existsByEmail(user.getEmail())) {
+                throw new RuntimeException("Email already exists");
+            }
+            User newUser = new User();
+            newUser.setUsername(user.getUsername());
+            newUser.setPassword(user.getPassword());
+            newUser.setEmail(user.getEmail());
 
-        newUser.setPassword(passwordEncoder.encode(user.getPassword()));
-        User savedUser = userRepository.save(newUser);
-        Cart cart = new Cart();
-        cart.setUser(savedUser);
-        cartRepository.save(cart);
-        return savedUser;
+            newUser.setPassword(passwordEncoder.encode(user.getPassword()));
+            User savedUser = userRepository.save(newUser);
+            Cart cart = new Cart();
+            cart.setUser(savedUser);
+            cartRepository.save(cart);
+            return savedUser;
+        } catch (Exception e) {
+            throw new RuntimeException( e.getMessage(), e);
+        }
     }
 
     @Override
     public User getUserInfo(String email) {
-        User user = userRepository.findByEmail(email);
-        return user;
+        try {
+            User user = userRepository.findByEmail(email);
+            if (user == null) {
+                throw new UserNotFoundException("User not found with email: " + email);
+            }
+            return user;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
     @Override
     public boolean changeAvatar(String email, String avatarUrl) {
-
-        User user = userRepository.findByEmail(email);
-        System.out.println(avatarUrl);
-        if (user != null) {
-            user.setAvatar(avatarUrl);
-            userRepository.save(user);
-            return true;
+        try {
+            User user = userRepository.findByEmail(email);
+            if (user != null) {
+                user.setAvatar(avatarUrl);
+                userRepository.save(user);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException( e.getMessage(), e);
         }
-        return false;
     }
 
     @Override
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElse(null);
+        try {
+            return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get user by id: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public boolean sendOtpEmail(String email) throws MessagingException, UserNotFoundException {
-        User userOpt = userRepository.findByEmail(email);
-        if (userOpt == null) {
-            throw new UserNotFoundException("User not found with email: " + email);
-        }
-        // Generate OTP and send email using EmailService
-        String otp = generateOtp();
-        Context context = new Context();
-        context.setVariable("otp", otp);
-        context.setVariable("name", userOpt.getUsername()); // Assuming username is the name
+        try {
+            User userOpt = userRepository.findByEmail(email);
+            if (userOpt == null) {
+                throw new UserNotFoundException("User not found with email: " + email);
+            }
+            // Generate OTP and send email using EmailService
+            String otp = generateOtp();
+            Context context = new Context();
+            context.setVariable("otp", otp);
+            context.setVariable("name", userOpt.getUsername()); // Assuming username is the name
 
-        emailService.sendEmail(email, "OTP Verification", "otp-email-template", context);
-        User user = userOpt;
-        user.setOtp(otp);
-        userRepository.save(user);
-        return true;
+            emailService.sendEmail(email, "OTP Verification", "otp-email-template", context);
+            User user = userOpt;
+            user.setOtp(otp);
+            userRepository.save(user);
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send OTP email: " + e.getMessage(), e);
+        }
     }
 
     @Override
     public boolean verifyOtp(String email, String otp) {
-        User userOpt = userRepository.findByEmail(email);
-        if (userOpt != null && userOpt.getOtp().equals(otp)) {
-            userOpt.setOtp(null);
-            userRepository.save(userOpt);
-            return true;
+        try {
+            User userOpt = userRepository.findByEmail(email);
+            if (userOpt == null) {
+                return false;
+            }
+            if (userOpt != null && userOpt.getOtp().equals(otp)) {
+                userOpt.setOtp(null);
+                userRepository.save(userOpt);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
-        return false;
     }
 
     @Override
     public boolean changePassword(String email, String oldPassword, String newPassword) {
-        User userOpt = userRepository.findByEmail(email);
-        if (userOpt != null && passwordEncoder.matches(oldPassword, userOpt.getPassword())) {
-            userOpt.setPassword(passwordEncoder.encode(newPassword));
-            userRepository.save(userOpt);
-            return true;
+        try {
+            User userOpt = userRepository.findByEmail(email);
+            if (userOpt != null && passwordEncoder.matches(oldPassword, userOpt.getPassword())) {
+                userOpt.setPassword(passwordEncoder.encode(newPassword));
+                userRepository.save(userOpt);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to change password: " + e.getMessage(), e);
         }
-        return false;
     }
 
     @Override
     public User getUserByEmail(String email) throws UserNotFoundException {
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new UserNotFoundException("User not found with email: " + email);
+        try {
+            User user = userRepository.findByEmail(email);
+            if (user == null) {
+                throw new UserNotFoundException("User not found with email: " + email);
+            }
+            return user;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get user by email: " + e.getMessage(), e);
         }
-        return user;
+    }
+
+    @Override
+    public List<User> getAllUser() {
+        try {
+            return userRepository.findAll();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get all users: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public boolean deleteUserById(Long id) {
+        try {
+            userRepository.deleteById(id);
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete user by id: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public boolean blockUserById(Long id) {
+        try {
+            User user = userRepository.findById(id).orElse(null);
+            if (user != null) {
+                user.setLocked(true);
+                userRepository.save(user);
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to block user by id: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public User updateUser(UserRequest user, String email) {
+        try {
+            User userOpt = userRepository.findByEmail(email);
+            if (userOpt != null) {
+                userOpt.setUsername(user.getUsername());
+                userOpt.setBio(user.getBio());
+                userOpt.setPhone(user.getPhone());
+                User newUser = userRepository.save(userOpt);
+                return newUser;
+            }
+            return null;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update user: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public Page<User> getAllUser(String name, org.springframework.data.domain.Pageable pageable) {
+        try {
+            if (name != null) {
+                return userRepository.findByEmailContaining(name, pageable);
+            }
+            return userRepository.findAll(pageable);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get all users with pagination: " + e.getMessage(), e);
+        }
     }
 
     private String generateOtp() {
@@ -143,48 +250,4 @@ public class UserServiceImpl implements IUserService {
         return String.valueOf(otp);
     }
 
-    @Override
-    public List<User> getAllUser() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    public boolean deleteUserById(Long id) {
-        userRepository.deleteById(id);
-        return true;
-    }
-
-    @Override
-    public boolean blockUserById(Long id) {
-        User user = userRepository.findById(id).orElse(null);
-        if (user != null) {
-            user.setLocked(true);
-            userRepository.save(user);
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public User updateUser(UserRequest user, String email) {
-        User userOpt = userRepository.findByEmail(email);
-        if (userOpt != null) {
-            userOpt.setUsername(user.getUsername());
-            userOpt.setBio(user.getBio());
-            userOpt.setPhone(user.getPhone());
-            User newUser = userRepository.save(userOpt);
-            return newUser;
-        }
-        return null;
-    }
-
-    @Override
-    public Page<User> getAllUser(String name, org.springframework.data.domain.Pageable pageable) {
-        if (name != null) {
-            return userRepository.findByEmailContaining(name, pageable);
-        }
-        return userRepository.findAll(pageable);
-    }
-
-    
 }

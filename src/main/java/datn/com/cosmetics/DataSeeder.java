@@ -2,6 +2,8 @@ package datn.com.cosmetics;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -10,17 +12,21 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import com.github.javafaker.Faker;
+
 import datn.com.cosmetics.entity.Address;
 import datn.com.cosmetics.entity.Blog;
 import datn.com.cosmetics.entity.BlogCategory;
 import datn.com.cosmetics.entity.Brand;
 import datn.com.cosmetics.entity.Category;
 import datn.com.cosmetics.entity.Discount;
+import datn.com.cosmetics.entity.Order;
+import datn.com.cosmetics.entity.OrderItem;
 import datn.com.cosmetics.entity.Product;
-import datn.com.cosmetics.entity.ProductImage;
 import datn.com.cosmetics.entity.Tag;
 import datn.com.cosmetics.entity.User;
 import datn.com.cosmetics.entity.enums.DiscountType;
+import datn.com.cosmetics.entity.enums.OrderStatus;
 import datn.com.cosmetics.repository.AddressRepository;
 import datn.com.cosmetics.repository.BlogCategoryRepository;
 import datn.com.cosmetics.repository.BlogRepository;
@@ -33,9 +39,14 @@ import datn.com.cosmetics.repository.ProductImageRepository;
 import datn.com.cosmetics.repository.ProductRepository;
 import datn.com.cosmetics.repository.TagRepository;
 import datn.com.cosmetics.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
+
+        private final Faker faker = new Faker();
 
         @Autowired
         private BlogRepository blogRepository;
@@ -63,190 +74,193 @@ public class DataSeeder implements CommandLineRunner {
         private OrderItemRepository orderItemRepository;
         @Autowired
         private DiscountRepository discountRepository;
+        @PersistenceContext
+        private EntityManager entityManager;
 
         @Override
+        @Transactional
         public void run(String... args) {
                 try {
-                        seedUsers();
-                        seedAddresses();
-                        seedTags();
                         seedBlogCategories();
                         seedBrands();
                         seedCategories();
+                        seedTags();
                         seedBlogs();
+                        seedUsers();
+                        seedAddresses();
                         seedProducts();
                         seedDiscounts();
-                        // seedOrders();
+                        seedOrders();
                 } catch (Exception e) {
                         e.printStackTrace();
                 }
         }
 
-        private void seedUsers() {
-                if (userRepository.count() == 0) {
-                        List<User> users = List.of(
-                                        new User("john_doe", "john@example.com", passwordEncoder.encode("123123123"),
-                                                        "https://example.com/avatar1.jpg", false, "USER"),
-                                        new User("jane_smith", "jane@example.com", passwordEncoder.encode("123123123"),
-                                                        "https://example.com/avatar2.jpg", false, "USER"),
-                                        new User("admin", "admin@example.com", passwordEncoder.encode("admin123"),
-                                                        "https://example.com/avatar3.jpg", false, "ADMIN"),
-                                        new User("peter_parker", "peter@example.com",
-                                                        passwordEncoder.encode("123123123"),
-                                                        "https://example.com/avatar4.jpg", false, "USER"),
-                                        new User("tony_stark", "tony@example.com", passwordEncoder.encode("123123123"),
-                                                        "https://example.com/avatar5.jpg", false, "USER"));
-                        userRepository.saveAll(users);
-                }
-        }
-
-        private void seedTags() {
-                if (tagRepository.count() == 0) {
-                        List<Tag> tags = List.of(
-                                        new Tag("Beauty"), new Tag("Skincare"), new Tag("Makeup"),
-                                        new Tag("Haircare"), new Tag("Lifestyle"));
-                        tagRepository.saveAll(tags);
-                }
-        }
-
         private void seedBlogCategories() {
                 if (blogCategoryRepository.count() == 0) {
-                        List<BlogCategory> categories = List.of(
-                                        new BlogCategory("Skincare", "All about skincare"),
-                                        new BlogCategory("Makeup", "Latest makeup trends"),
-                                        new BlogCategory("Haircare", "Tips for healthy hair"),
-                                        new BlogCategory("Fashion", "Latest fashion trends"),
-                                        new BlogCategory("Lifestyle", "Healthy and balanced life"));
-                        blogCategoryRepository.saveAll(categories);
+                        for (int i = 0; i < 1000; i++) {
+                                entityManager.persist(new BlogCategory(faker.book().genre(), faker.lorem().sentence()));
+                        }
+                        entityManager.flush();
+                        entityManager.clear();
+                        System.out.println("✅ Seeded Blog Categories!");
                 }
         }
 
         private void seedBrands() {
                 if (brandRepository.count() == 0) {
-                        List<Brand> brands = List.of(
-                                        new Brand("L'Oreal", "Luxury beauty brand", "https://example.com/loreal.jpg"),
-                                        new Brand("Maybelline", "Affordable makeup products",
-                                                        "https://example.com/maybelline.jpg"),
-                                        new Brand("Clinique", "Dermatologist-tested skincare",
-                                                        "https://example.com/clinique.jpg"),
-                                        new Brand("Dior", "High-end beauty and fashion",
-                                                        "https://example.com/dior.jpg"),
-                                        new Brand("MAC", "Professional makeup brand", "https://example.com/mac.jpg"));
-                        brandRepository.saveAll(brands);
+                        for (int i = 0; i < 1000; i++) {
+                                entityManager.persist(new Brand(faker.company().name(), faker.lorem().sentence(),
+                                                faker.internet().image()));
+                        }
+                        entityManager.flush();
+                        entityManager.clear();
+                        System.out.println("✅ Seeded Brands!");
                 }
         }
 
         private void seedCategories() {
                 if (categoryRepository.count() == 0) {
-                        List<Category> categories = List.of(
-                                        new Category("Skincare", "Products for healthy skin",
-                                                        "https://example.com/skincare.jpg"),
-                                        new Category("Makeup", "Cosmetics for beauty",
-                                                        "https://example.com/makeup.jpg"),
-                                        new Category("Haircare", "Shampoos and conditioners",
-                                                        "https://example.com/haircare.jpg"),
-                                        new Category("Perfume", "Luxury fragrances", "https://example.com/perfume.jpg"),
-                                        new Category("Accessories", "Beauty tools and accessories",
-                                                        "https://example.com/accessories.jpg"));
-                        categoryRepository.saveAll(categories);
+                        for (int i = 0; i < 1000; i++) {
+                                entityManager.persist(new Category(faker.commerce().department(),
+                                                faker.lorem().sentence(), faker.internet().image()));
+                        }
+                        entityManager.flush();
+                        entityManager.clear();
+                        System.out.println("✅ Seeded Categories!");
+                }
+        }
+
+        private void seedTags() {
+                if (tagRepository.count() == 0) {
+                        for (int i = 0; i < 1000; i++) {
+                                entityManager.persist(new Tag(faker.commerce().productName()));
+                        }
+                        entityManager.flush();
+                        entityManager.clear();
+                        System.out.println("✅ Seeded Tags!");
                 }
         }
 
         private void seedBlogs() {
-                if (blogRepository.count() == 0) {
-                        BlogCategory category = blogCategoryRepository.findById(1L).orElse(null);
-                        User author = userRepository.findById(1L).orElse(null);
+                if (entityManager.createQuery("SELECT COUNT(b) FROM Blog b", Long.class).getSingleResult() == 0) {
+                        List<BlogCategory> blogCategories = blogCategoryRepository.findAll();
+                        List<User> users = userRepository.findAll();
                         List<Tag> tags = tagRepository.findAll();
 
-                        if (category != null && author != null && !tags.isEmpty()) {
-                                List<Blog> blogs = List.of(
-                                                new Blog("Top 10 Skincare Tips", "Best skincare practices",
-                                                                "https://example.com/blog1.jpg",
-                                                                "published", category, author,
-                                                                Set.of(tags.get(0), tags.get(1))),
-                                                new Blog("Makeup Trends 2024", "Latest trends in makeup",
-                                                                "https://example.com/blog2.jpg",
-                                                                "published", category, author, Set.of(tags.get(2))),
-                                                new Blog("How to Get Shiny Hair", "Haircare routines",
-                                                                "https://example.com/blog3.jpg",
-                                                                "published", category, author, Set.of(tags.get(3))),
-                                                new Blog("Dressing Like a Celebrity", "Fashion trends",
-                                                                "https://example.com/blog4.jpg",
-                                                                "published", category, author, Set.of(tags.get(4))),
-                                                new Blog("Healthy Lifestyle Tips", "How to stay healthy",
-                                                                "https://example.com/blog5.jpg",
-                                                                "published", category, author,
-                                                                Set.of(tags.get(0), tags.get(4))));
-                                blogRepository.saveAll(blogs);
+                        if (blogCategories.isEmpty() || users.isEmpty() || tags.isEmpty()) {
+                                System.out.println("⛔ Skipping blog seeding due to missing data.");
+                                return;
                         }
+
+                        for (int i = 0; i < 1000; i++) {
+                                BlogCategory category = blogCategories
+                                                .get(faker.number().numberBetween(0, blogCategories.size()));
+                                User author = users.get(faker.number().numberBetween(0, users.size()));
+
+                                Set<Tag> blogTags = new HashSet<>();
+                                for (int j = 0; j < faker.number().numberBetween(1, 5); j++) {
+                                        blogTags.add(tags.get(faker.number().numberBetween(0, tags.size())));
+                                }
+
+                                Blog blog = new Blog(
+                                                faker.book().title(),
+                                                faker.lorem().paragraph(),
+                                                faker.internet().image(),
+                                                "PUBLISHED",
+                                                category,
+                                                author,
+                                                blogTags);
+
+                                entityManager.persist(blog);
+
+                                if (i % 50 == 0) { // Flush sau mỗi 50 bản ghi
+                                        entityManager.flush();
+                                        entityManager.clear();
+                                }
+                        }
+                        entityManager.flush();
+                        entityManager.clear();
+                        System.out.println("✅ Seeded 1000 Blogs!");
+                }
+        }
+
+        private void seedUsers() {
+                if (userRepository.count() == 0) {
+                        for (int i = 0; i < 50; i++) {
+                                String username;
+                                String email;
+
+                                // Tạo username và email không trùng lặp
+                                do {
+                                        username = faker.name().username();
+                                } while (userRepository.existsByUsername(username));
+
+                                do {
+                                        email = faker.internet().emailAddress();
+                                } while (userRepository.existsByEmail(email));
+
+                                User user = new User(
+                                                username,
+                                                email,
+                                                passwordEncoder.encode("123123123"),
+                                                faker.internet().avatar(),
+                                                false,
+                                                "USER");
+
+                                entityManager.persist(user);
+                        }
+                        entityManager.flush();
+                        entityManager.clear();
+                        System.out.println("✅ Seeded Users!");
                 }
         }
 
         private void seedProducts() {
                 if (productRepository.count() == 0) {
-                        Category skincare = categoryRepository.findById(1L).orElse(null);
-                        Brand loreal = brandRepository.findById(1L).orElse(null);
+                        List<Category> categories = categoryRepository.findAll();
+                        List<Brand> brands = brandRepository.findAll();
 
-                        if (skincare != null && loreal != null) {
-                                List<Product> products = List.of(
-                                                new Product(null, "L'Oreal Revitalift Cream", "Anti-aging face cream",
-                                                                new BigDecimal("300000"), new BigDecimal("250000"),
-                                                                true, 50,
-                                                                "Retinol, Hyaluronic Acid", "Apply daily", null,
-                                                                skincare, loreal, null,
-                                                                "available", LocalDateTime.now(), LocalDateTime.now(),
-                                                                new BigDecimal("16.67")),
-                                                new Product(null, "Neutrogena Hydro Boost", "Water gel moisturizer",
-                                                                new BigDecimal("240000"), new BigDecimal("190000"),
-                                                                true, 30,
-                                                                "Hyaluronic Acid", "Use morning and night", null,
-                                                                skincare, loreal, null,
-                                                                "available", LocalDateTime.now(), LocalDateTime.now(),
-                                                                new BigDecimal("20.83")),
-                                                new Product(null, "CeraVe Hydrating Cleanser",
-                                                                "Facial cleanser for normal to dry skin",
-                                                                new BigDecimal("150000"), new BigDecimal("120000"),
-                                                                true, 20,
-                                                                "Ceramides, Hyaluronic Acid", "Use twice daily", null,
-                                                                skincare, loreal, null,
-                                                                "available", LocalDateTime.now(), LocalDateTime.now(),
-                                                                new BigDecimal("20.00")),
-                                                new Product(null, "The Ordinary Niacinamide 10%", "Brightening serum",
-                                                                new BigDecimal("120000"), new BigDecimal("90000"), true,
-                                                                40,
-                                                                "Niacinamide, Zinc", "Apply before moisturizer", null,
-                                                                skincare, loreal, null,
-                                                                "available", LocalDateTime.now(), LocalDateTime.now(),
-                                                                new BigDecimal("25.00")),
-                                                new Product(null, "Clinique Dramatically Different Moisturizer",
-                                                                "Hydrates and strengthens skin barrier",
-                                                                new BigDecimal("270000"),
-                                                                new BigDecimal("220000"), true, 25,
-                                                                "Glycerin, Hyaluronic Acid", "Use daily",
-                                                                null, skincare, loreal, null, "available",
-                                                                LocalDateTime.now(),
-                                                                LocalDateTime.now(), new BigDecimal("18.52")));
+                        if (categories.isEmpty() || brands.isEmpty()) {
+                                System.out.println("⛔ Skipping product seeding due to missing data.");
+                                return;
+                        }
 
-                                productRepository.saveAll(products);
+                        for (int i = 0; i < 1000; i++) {
+                                Product product = new Product(
+                                                null,
 
-                                // Add images for each product
-                                for (Product product : products) {
-                                        List<ProductImage> images = List.of(
-                                                        new ProductImage(null,
-                                                                        "https://example.com/images/" + product
-                                                                                        .getName().replace(" ", "_")
-                                                                                        + "_1.jpg",
-                                                                        "public_id_1", "active", LocalDateTime.now(),
-                                                                        LocalDateTime.now(), product),
-                                                        new ProductImage(null,
-                                                                        "https://example.com/images/" + product
-                                                                                        .getName().replace(" ", "_")
-                                                                                        + "_2.jpg",
-                                                                        "public_id_2", "active", LocalDateTime.now(),
-                                                                        LocalDateTime.now(), product));
-                                        productImageRepository.saveAll(images);
+                                                faker.commerce().productName(), faker.lorem().sentence(),
+
+                                                new BigDecimal(faker.number().numberBetween(10000, 5000000)),
+
+                                                new BigDecimal(faker.number().numberBetween(5000, 4000000)),
+                                                true,
+                                                faker.number().numberBetween(10, 100),
+
+                                                faker.lorem().sentence(),
+
+                                                faker.lorem().sentence(),
+
+                                                null,
+                                                categories.get(faker.number().numberBetween(0, categories.size())),
+
+                                                brands.get(faker.number().numberBetween(0, brands.size())),
+
+                                                new ArrayList<>(),
+
+                                                "ACTIVE",
+                                                LocalDateTime.now(),
+                                                LocalDateTime.now(),
+                                                new BigDecimal("16.67"));
+                                entityManager.persist(product);
+
+                                if (i % 50 == 0) {
+                                        entityManager.flush();
+                                        entityManager.clear();
                                 }
                         }
+                        System.out.println("✅ Seeded 1000 Products!");
                 }
         }
 
@@ -255,100 +269,99 @@ public class DataSeeder implements CommandLineRunner {
                         List<User> users = userRepository.findAll();
 
                         if (users.isEmpty()) {
-                                System.out.println("Không có người dùng nào để tạo địa chỉ!");
+                                System.out.println("⛔ Skipping address seeding due to missing users.");
                                 return;
                         }
 
-                        System.out.println("Bắt đầu thêm địa chỉ cho người dùng...");
-
                         for (User user : users) {
-                                Address address1 = new Address(null, "John", "Doe", "123 Main St", "Los Angeles", "CA",
-                                                "90001",
-                                                "1234567890", user.getEmail(), true, LocalDateTime.now(),
-                                                LocalDateTime.now(), user);
-                                Address address2 = new Address(null, "Jane", "Doe", "456 Elm St", "San Francisco", "CA",
-                                                "94102",
-                                                "0987654321", user.getEmail(), false, LocalDateTime.now(),
-                                                LocalDateTime.now(), user);
+                                Address address = new Address(
+                                                null, // ID phải để null để tránh xung đột
+                                                faker.name().firstName(),
+                                                faker.name().lastName(),
+                                                faker.address().streetAddress(),
+                                                faker.address().city(),
+                                                faker.address().state(),
+                                                faker.address().zipCode(),
+                                                faker.phoneNumber().cellPhone(),
+                                                user.getEmail(),
+                                                true,
+                                                LocalDateTime.now(),
+                                                LocalDateTime.now(),
+                                                user);
 
-                                addressRepository.saveAll(List.of(address1, address2));
-
-                                System.out.println("Đã thêm 2 địa chỉ cho user: " + user.getUsername() + " (ID: "
-                                                + user.getId() + ")");
+                                entityManager.merge(address); // Dùng merge thay vì persist
                         }
-
-                        System.out.println("Seed địa chỉ hoàn tất!");
-                } else {
-                        System.out.println("Dữ liệu địa chỉ đã tồn tại, bỏ qua seed!");
-                }
-        }
-
-        private void seedOrders() {
-                if (orderRepository.count() == 0) {
-
-                        System.out.println("Seed đơn hàng hoàn tất!");
-                } else {
-                        System.out.println("Dữ liệu đơn hàng đã tồn tại, bỏ qua seed!");
+                        entityManager.flush();
+                        entityManager.clear();
+                        System.out.println("✅ Seeded Addresses!");
                 }
         }
 
         private void seedDiscounts() {
                 if (discountRepository.count() == 0) {
-                        List<Discount> discounts = List.of(
+                        for (int i = 0; i < 10; i++) {
+                                Discount discount = new Discount(
+                                                faker.commerce().promotionCode(),
+                                                faker.commerce().promotionCode(),
+                                                DiscountType.PERCENTAGE,
+                                                new BigDecimal(faker.number().numberBetween(5, 30)),
+                                                new BigDecimal(100),
+                                                new BigDecimal(500),
+                                                faker.number().numberBetween(50, 500),
+                                                0,
+                                                null,
+                                                LocalDateTime.now(),
+                                                LocalDateTime.now().plusMonths(3),
+                                                true);
+                                entityManager.persist(discount);
+                        }
+                        entityManager.flush();
+                        entityManager.clear();
+                        System.out.println("✅ Seeded Discounts!");
+                }
+        }
 
-                                        new Discount("Giảm 10% đơn hàng từ 200K", "SALE10", DiscountType.PERCENTAGE,
-                                                        new BigDecimal("10"),
-                                                        new BigDecimal("200000"), new BigDecimal("50000"), 100, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(30), true),
+        private void seedOrders() {
+                if (orderRepository.count() == 0) {
+                        List<User> users = userRepository.findAll();
+                        List<Product> products = productRepository.findAll();
+                        List<Address> addresses = addressRepository.findAll();
 
-                                        new Discount("Giảm 20% đơn hàng từ 500K", "SALE20", DiscountType.PERCENTAGE,
-                                                        new BigDecimal("20"),
-                                                        new BigDecimal("500000"), new BigDecimal("100000"), 50, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(30), true),
+                        if (users.isEmpty() || products.isEmpty() || addresses.isEmpty()) {
+                                System.out.println("⛔ Skipping order seeding due to missing data.");
+                                return;
+                        }
 
-                                        new Discount("Giảm 50K đơn hàng từ 300K", "DISCOUNT50", DiscountType.FIXED,
-                                                        new BigDecimal("50000"),
-                                                        new BigDecimal("300000"), new BigDecimal("50000"), 200, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(60), true),
+                        for (int i = 0; i < 1000; i++) {
+                                User user = users.get(faker.number().numberBetween(0, users.size()));
+                                Address address = addresses.get(faker.number().numberBetween(0, addresses.size()));
+                                Order order = new Order();
+                                order.setUser(user);
+                                order.setShippingAddress(address);
+                                order.setPaymentMethod("CASH");
+                                order.setStatus(OrderStatus.DELIVERED);
+                                order.setTotalAmount(new BigDecimal(faker.number().numberBetween(100000, 5000000)));
+                                order.setDiscountAmount(BigDecimal.ZERO);
+                                order.setFinalAmount(order.getTotalAmount());
+                                order.setOrderDate(LocalDateTime.now());
+                                entityManager.persist(order);
 
-                                        new Discount("Miễn phí vận chuyển", "FREESHIP", DiscountType.FIXED,
-                                                        new BigDecimal("25000"),
-                                                        new BigDecimal("100000"), new BigDecimal("25000"), 500, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(15), true),
+                                int orderItemCount = faker.number().numberBetween(1, 5);
+                                for (int j = 0; j < orderItemCount; j++) {
+                                        Product product = products
+                                                        .get(faker.number().numberBetween(0, products.size()));
+                                        OrderItem orderItem = new OrderItem(product, faker.number().numberBetween(1, 5),
+                                                        product.getPrice());
+                                        orderItem.setOrder(order);
+                                        entityManager.persist(orderItem);
+                                }
 
-                                        new Discount("Giảm 15% cho đơn hàng từ 400K", "SUMMER15",
-                                                        DiscountType.PERCENTAGE,
-                                                        new BigDecimal("15"),
-                                                        new BigDecimal("400000"), new BigDecimal("80000"), 150, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(45), true),
-
-                                        new Discount("Mừng năm mới! Giảm 30%", "NEWYEAR30", DiscountType.PERCENTAGE,
-                                                        new BigDecimal("30"),
-                                                        new BigDecimal("600000"), new BigDecimal("120000"), 80, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(30), true),
-
-                                        new Discount("Giảm 50K cho đơn hàng từ 400K", "SPRING50", DiscountType.FIXED,
-                                                        new BigDecimal("50000"),
-                                                        new BigDecimal("400000"), new BigDecimal("50000"), 120, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(25), true),
-
-                                        new Discount("Giảm 25% đơn hàng từ 350K", "AUTUMN25", DiscountType.PERCENTAGE,
-                                                        new BigDecimal("25"),
-                                                        new BigDecimal("350000"), new BigDecimal("90000"), 100, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(40), true),
-
-                                        new Discount("Black Friday - Giảm 50% cực sốc!", "BLACKFRIDAY",
-                                                        DiscountType.PERCENTAGE,
-                                                        new BigDecimal("50"),
-                                                        new BigDecimal("700000"), new BigDecimal("150000"), 50, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(10), true),
-
-                                        new Discount("Cyber Monday - Giảm ngay 75K", "CYBERMONDAY", DiscountType.FIXED,
-                                                        new BigDecimal("75000"),
-                                                        new BigDecimal("500000"), new BigDecimal("75000"), 60, 0, null,
-                                                        LocalDateTime.now(), LocalDateTime.now().plusDays(20), true));
-
-                        discountRepository.saveAll(discounts);
+                                if (i % 50 == 0) {
+                                        entityManager.flush();
+                                        entityManager.clear();
+                                }
+                        }
+                        System.out.println("✅ Seeded 500 Orders with Order Items!");
                 }
         }
 

@@ -56,10 +56,8 @@ public class UserController {
                 return ResponseEntity.badRequest().body(ApiResponse.error("Email already exists"));
             }
             return ResponseEntity.ok(ApiResponse.success(user, "User registered successfully"));
-
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-
+            return ResponseEntity.badRequest().body(ApiResponse.error("Registration failed: " + e.getMessage()));
         }
     }
 
@@ -75,10 +73,8 @@ public class UserController {
                     new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
             LoginResponse loginResponse = new LoginResponse(user, jwtGenerator.generateToken(authentication));
             return ResponseEntity.ok(ApiResponse.success(loginResponse, "Login successfully"));
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
-
         }
     }
 
@@ -98,11 +94,10 @@ public class UserController {
 
             User user = userService.getUserByEmail(username);
             return ResponseEntity.ok(ApiResponse.success(user, "User info"));
-
         } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error(e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.error("User not found: " + e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to get user profile: " + e.getMessage()));
         }
     }
 
@@ -111,40 +106,45 @@ public class UserController {
     public ResponseEntity<ApiResponse<String>> updateUserInfo(
             @RequestHeader(name = "Authorization") String jwt,
             @RequestBody Map<String, String> avatar) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
-        }
+            if (authentication == null || !authentication.isAuthenticated()
+                    || "anonymousUser".equals(authentication.getPrincipal())) {
+                return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+            }
 
-        String username = authentication.getName();
-        boolean updated = userService.changeAvatar(username, avatar.get("avatar"));
-        if (updated) {
-            return ResponseEntity.ok(ApiResponse.success("User information updated successfully", ""));
+            String username = authentication.getName();
+            boolean updated = userService.changeAvatar(username, avatar.get("avatar"));
+            if (updated) {
+                return ResponseEntity.ok(ApiResponse.success("User information updated successfully", ""));
+            }
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to update user information"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to update avatar: " + e.getMessage()));
         }
-        return ResponseEntity.badRequest().body(ApiResponse.error("Failed to update user information"));
     }
 
     @PutMapping("/update")
     public ResponseEntity<ApiResponse<User>> putMethodName(@RequestHeader(name = "Authorization") String jwt,
-
             @RequestBody UserRequest entity) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()
+                    || "anonymousUser".equals(authentication.getPrincipal())) {
+                return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+            }
 
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+            String username = authentication.getName();
+            User updated = userService.updateUser(entity, username);
+            if (updated != null) {
+                return ResponseEntity.ok(ApiResponse.success(updated, "User information updated successfully"));
+            }
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to update user information"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to update user: " + e.getMessage()));
         }
-
-        String username = authentication.getName();
-        User updated = userService.updateUser(entity, username);
-        if (updated != null) {
-            return ResponseEntity.ok(ApiResponse.success(updated, "User information updated successfully"));
-        }
-        return ResponseEntity.badRequest().body(ApiResponse.error("Failed to update user information"));
-
     }
 
     @Operation(summary = "Send OTP email", description = "Send an OTP to the user's email for verification")
@@ -157,9 +157,11 @@ public class UserController {
             }
             return ResponseEntity.badRequest().body(ApiResponse.error("Failed to send OTP"));
         } catch (UserNotFoundException e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.error("User not found: " + e.getMessage()));
         } catch (MessagingException e) {
             return ResponseEntity.status(500).body(ApiResponse.error("Failed to send email: " + e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to send OTP email: " + e.getMessage()));
         }
     }
 
@@ -167,31 +169,37 @@ public class UserController {
     @PostMapping("/change-password")
     public ResponseEntity<ApiResponse<String>> changePassword(@RequestHeader(name = "Authorization") String jwt,
             @RequestBody Map<String, String> body) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()
+                    || "anonymousUser".equals(authentication.getPrincipal())) {
+                return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+            }
 
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            return ResponseEntity.status(401).body(ApiResponse.error("Not logged in"));
+            String username = authentication.getName();
+            boolean changed = userService.changePassword(username, body.get("oldPassword"), body.get("newPassword"));
+            if (changed) {
+                return ResponseEntity.ok(ApiResponse.success("Password changed successfully", ""));
+            }
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to change password"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to change password: " + e.getMessage()));
         }
-        System.out.println(body);
-
-        String username = authentication.getName();
-        boolean changed = userService.changePassword(username, body.get("oldPassword"), body.get("newPassword"));
-        if (changed) {
-            return ResponseEntity.ok(ApiResponse.success("Password changed successfully", ""));
-        }
-        return ResponseEntity.badRequest().body(ApiResponse.error("Failed to change password"));
     }
 
     @Operation(summary = "Verify OTP", description = "Verify the OTP sent to the user's email")
     @PostMapping("/verify-otp")
     public ResponseEntity<ApiResponse<String>> verifyOtp(@RequestParam String email, @RequestParam String otp) {
-        boolean verified = userService.verifyOtp(email, otp);
-        if (verified) {
-            return ResponseEntity.ok(ApiResponse.success("OTP verified successfully", ""));
+        try {
+            boolean verified = userService.verifyOtp(email, otp);
+            if (verified) {
+                return ResponseEntity.ok(ApiResponse.success("OTP verified successfully", ""));
+            }
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to verify OTP"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to verify OTP: " + e.getMessage()));
         }
-        return ResponseEntity.badRequest().body(ApiResponse.error("Failed to verify OTP"));
     }
 
     // get all user
@@ -203,11 +211,22 @@ public class UserController {
     ) {
         try {
             Page<User> users = userService.getAllUser(search, pageable);
-            ApiResponse.Pagination pagination = new ApiResponse.Pagination(users.getNumber(), users.getTotalPages(),
+            ApiResponse.Pagination pagination = new ApiResponse.Pagination(users.getNumber()+1, users.getTotalPages(),
                     users.getTotalElements());
             return ResponseEntity.ok(ApiResponse.success(users.getContent(), "Get all user successfully", pagination));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to get all users: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/password")
+    public ResponseEntity<ApiResponse<String>> changePassword(@RequestParam String email,
+            @RequestParam String password, @RequestParam String newPassword) {
+        try {
+            userService.changePassword(email, password, newPassword);
+            return ResponseEntity.ok(ApiResponse.success("Change password successfully", ""));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to change password: " + e.getMessage()));
         }
     }
 
@@ -218,7 +237,7 @@ public class UserController {
         try {
             return ResponseEntity.ok(ApiResponse.success(userService.getUserById(id), "Get user by id successfully"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to get user by id: " + e.getMessage()));
         }
     }
 
@@ -230,7 +249,7 @@ public class UserController {
             userService.deleteUserById(id);
             return ResponseEntity.ok(ApiResponse.success(null, "Delete user by id successfully"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to delete user by id: " + e.getMessage()));
         }
     }
 
@@ -242,7 +261,7 @@ public class UserController {
             userService.blockUserById(id);
             return ResponseEntity.ok(ApiResponse.success(null, "Block user by id successfully"));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.error("Failed to block user by id: " + e.getMessage()));
         }
     }
 }

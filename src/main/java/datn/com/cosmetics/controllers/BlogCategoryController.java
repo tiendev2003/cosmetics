@@ -40,7 +40,8 @@ public class BlogCategoryController {
     public ResponseEntity<ApiResponse<BlogCategory>> createBlogCategory(
             @Parameter(description = "Blog category request body", required = true) @RequestBody BlogCategoryRequest request) {
         BlogCategory blogCategory = blogCategoryService.createBlogCategory(request);
-        return new ResponseEntity<>(ApiResponse.success(blogCategory, "Blog category created successfully"), HttpStatus.CREATED);
+        return new ResponseEntity<>(ApiResponse.success(blogCategory, "Blog category created successfully"),
+                HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
@@ -48,7 +49,8 @@ public class BlogCategoryController {
     public ResponseEntity<ApiResponse<BlogCategory>> getBlogCategoryById(
             @Parameter(description = "Blog category ID", required = true) @PathVariable Long id) {
         BlogCategory blogCategory = blogCategoryService.getBlogCategoryById(id);
-        return new ResponseEntity<>(ApiResponse.success(blogCategory, "Blog category retrieved successfully"), HttpStatus.OK);
+        return new ResponseEntity<>(ApiResponse.success(blogCategory, "Blog category retrieved successfully"),
+                HttpStatus.OK);
     }
 
     @GetMapping
@@ -59,7 +61,12 @@ public class BlogCategoryController {
             @Parameter(description = "Blog category name filter", required = false) @RequestParam(required = false) String name) {
         Pageable pageable = PageRequest.of(page, size);
         Page<BlogCategory> blogCategories = blogCategoryService.getAllBlogCategories(pageable, name);
-        return new ResponseEntity<>(ApiResponse.success(blogCategories.getContent(), "Blog categories retrieved successfully"), HttpStatus.OK);
+        ApiResponse.Pagination pagination = new ApiResponse.Pagination(blogCategories.getNumber() + 1,
+                blogCategories.getTotalPages(), blogCategories.getTotalElements());
+        return new ResponseEntity<>(
+
+                ApiResponse.success(blogCategories.getContent(), "Blog categories retrieved successfully", pagination),
+                HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
@@ -68,7 +75,8 @@ public class BlogCategoryController {
             @Parameter(description = "Blog category ID", required = true) @PathVariable Long id,
             @Parameter(description = "Blog category request body", required = true) @RequestBody BlogCategoryRequest request) {
         BlogCategory blogCategory = blogCategoryService.updateBlogCategory(id, request);
-        return new ResponseEntity<>(ApiResponse.success(blogCategory, "Blog category updated successfully"), HttpStatus.OK);
+        return new ResponseEntity<>(ApiResponse.success(blogCategory, "Blog category updated successfully"),
+                HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -76,8 +84,10 @@ public class BlogCategoryController {
     public ResponseEntity<ApiResponse<Void>> deleteBlogCategory(
             @Parameter(description = "Blog category ID", required = true) @PathVariable Long id) {
         blogCategoryService.deleteBlogCategory(id);
-        return new ResponseEntity<>(ApiResponse.success(null, "Blog category deleted successfully"), HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(ApiResponse.success(null, "Blog category deleted successfully"),
+                HttpStatus.NO_CONTENT);
     }
+
     @GetMapping("/blog-count")
     public ResponseEntity<List<BlogCategoryDTO>> getCategoriesWithBlogCount() {
         List<BlogCategoryDTO> categories = blogCategoryService.getAllCategoriesWithBlogCount();

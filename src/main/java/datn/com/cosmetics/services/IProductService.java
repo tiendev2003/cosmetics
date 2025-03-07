@@ -18,7 +18,7 @@ public interface IProductService {
         Product getProductById(Long id);
 
         Page<Product> getAllProducts(Double minPrice, Double maxPrice, Long brandId, Long categoryId, String sortBy,
-                        String sortDirection, Pageable pageable);
+                        String sortDirection, Pageable pageable,String search);
 
         Page<Product> getProductsByFilter(Double minPrice, Double maxPrice, Long brandId, Long categoryId,
                         Pageable pageable);

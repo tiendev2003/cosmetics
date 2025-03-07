@@ -19,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import datn.com.cosmetics.bean.request.OrderRequest;
 import datn.com.cosmetics.entity.Address;
-import datn.com.cosmetics.entity.Cart;
 import datn.com.cosmetics.entity.Order;
 import datn.com.cosmetics.entity.OrderItem;
 import datn.com.cosmetics.entity.User;
@@ -58,135 +57,171 @@ public class OrderServiceImpl implements IOrderService {
     @Override
     @Transactional
     public Order createOrder(OrderRequest orderRequest) {
-        System.out.println(
-                "orderRequest: " + orderRequest.getUsername() + " " + orderRequest.getAddress() + " "
-                        + orderRequest.getPaymentMethod() + " " + orderRequest.getTotalAmount() + " "
-                        + orderRequest.getDiscountAmount() + " " + orderRequest.getOrderItems());
+        try {
+            System.out.println(
+                    "orderRequest: " + orderRequest.getUsername() + " " + orderRequest.getAddress() + " "
+                            + orderRequest.getPaymentMethod() + " " + orderRequest.getTotalAmount() + " "
+                            + orderRequest.getDiscountAmount() + " " + orderRequest.getOrderItems());
 
-        // Validate input
-        if (orderRequest.getTotalAmount() == null || orderRequest.getOrderItems().isEmpty()) {
-            throw new IllegalArgumentException("Invalid order request");
-        }
-
-        User user = userRepository.findByEmail(orderRequest.getUsername());
-        if (user == null) {
-            throw new IllegalArgumentException("User not found");
-        }
-
-        // Kiểm tra address
-        Address address = addressRepository.findById(orderRequest.getAddress())
-                .orElseThrow(() -> new IllegalArgumentException("Address not found"));
-
-        if (!address.getUser().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("Address does not belong to user");
-        }
-
-        // Kiểm tra phương thức thanh toán
-        if (!isValidPaymentMethod(orderRequest.getPaymentMethod())) {
-            throw new IllegalArgumentException("Invalid payment method: " + orderRequest.getPaymentMethod());
-        }
-
-        // **Fix lỗi Duplicate Entry**
-        // Tạo order mới với ID tự động sinh
-        Order order = new Order();
-        order.setUser(user);
-        order.setShippingAddress(address);
-        order.setTotalAmount(orderRequest.getTotalAmount());
-        order.setDiscountAmount(orderRequest.getDiscountAmount());
-        order.setFinalAmount(orderRequest.getFinalAmount());
-        order.setStatus(OrderStatus.PENDING);
-        order.setPaymentMethod(orderRequest.getPaymentMethod());
-
-        // **Lưu order trước khi lưu OrderItems**
-        Order newOrder = orderRepository.save(order);
-
-        // **Lưu OrderItem**
-        orderRequest.getOrderItems().forEach(itemRequest -> {
-            if (itemRequest.getQuantity() <= 0) {
-                throw new IllegalArgumentException("Quantity must be positive");
+            // Validate input
+            if (orderRequest.getTotalAmount() == null || orderRequest.getOrderItems().isEmpty()) {
+                throw new IllegalArgumentException("Invalid order request");
             }
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrder(newOrder);
-            orderItem.setProduct(productRepository.findById(itemRequest.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException("Product not found")));
-            orderItem.setQuantity(itemRequest.getQuantity());
-            orderItem.setUnitPrice(itemRequest.getPrice());
 
-            orderItemRepository.save(orderItem);
-        });
+            User user = userRepository.findByEmail(orderRequest.getUsername());
+            if (user == null) {
+                throw new IllegalArgumentException("User not found");
+            }
 
-        // **Xoá cart sau khi đã tạo order thành công**
-        Cart cart = cartRepository.findByUser(user).orElse(null);
-        if (cart != null) {
-            cartItemRepository.deleteByCartId(cart.getId());
-            cart.setTotal(0);
-            cartRepository.save(cart);
+            // Kiểm tra address
+            Address address = addressRepository.findById(orderRequest.getAddress())
+                    .orElseThrow(() -> new IllegalArgumentException("Address not found"));
+
+            if (!address.getUser().getId().equals(user.getId())) {
+                throw new IllegalArgumentException("Address does not belong to user");
+            }
+
+            // Kiểm tra phương thức thanh toán
+            if (!isValidPaymentMethod(orderRequest.getPaymentMethod())) {
+                throw new IllegalArgumentException("Invalid payment method: " + orderRequest.getPaymentMethod());
+            }
+
+            // **Fix lỗi Duplicate Entry**
+            // Tạo order mới với ID tự động sinh
+            Order order = new Order();
+            order.setUser(user);
+            order.setShippingAddress(address);
+            order.setTotalAmount(orderRequest.getTotalAmount());
+            order.setDiscountAmount(orderRequest.getDiscountAmount());
+            order.setFinalAmount(orderRequest.getFinalAmount());
+            order.setStatus(OrderStatus.PENDING);
+            order.setPaymentMethod(orderRequest.getPaymentMethod());
+
+            // **Lưu order trước khi lưu OrderItems**
+            Order newOrder = orderRepository.save(order);
+
+            // **Lưu OrderItem**
+            orderRequest.getOrderItems().forEach(itemRequest -> {
+                if (itemRequest.getQuantity() <= 0) {
+                    throw new IllegalArgumentException("Quantity must be positive");
+                }
+                OrderItem orderItem = new OrderItem();
+                orderItem.setOrder(newOrder);
+                orderItem.setProduct(productRepository.findById(itemRequest.getProductId())
+                        .orElseThrow(() -> new IllegalArgumentException("Product not found")));
+                orderItem.setQuantity(itemRequest.getQuantity());
+                orderItem.setUnitPrice(itemRequest.getPrice());
+
+                orderItemRepository.save(orderItem);
+            });
+
+
+            return newOrder;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create order", e);
         }
-
-        return newOrder;
     }
 
     @Override
     public Order getOrderById(Long id) {
-        return orderRepository.findById(id)
-                .orElseThrow(() -> null);
+        try {
+            return orderRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve order", e);
+        }
+    }
+
+    @Override
+    public Order findByOrderId(String orderId) {
+        try {
+            return orderRepository.findByIdOrder(orderId);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve order", e);
+        }
     }
 
     @Override
     public Page<Order> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable);
+        try {
+            return orderRepository.findAll(pageable);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve orders", e);
+        }
     }
 
     @Override
     @Transactional
     public Order changeStatusOrder(Long id, String status) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> null);
-
-        if (!isValidStatus(status)) {
-            throw new IllegalArgumentException("Invalid status: " + status);
+        try {
+            Order order = orderRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+            if (!isValidStatus(status)) {
+                throw new IllegalArgumentException("Invalid status: " + status);
+            }
+            if (order.getStatus() == OrderStatus.CANCELLED) {
+                throw new IllegalArgumentException("Order has been cancelled");
+            }
+            order.setStatus(OrderStatus.valueOf(status));
+            return orderRepository.save(order);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to change order status", e);
         }
-        if (order.getStatus() == OrderStatus.CANCELLED) {
-            throw new IllegalArgumentException("Order has been cancelled");
-        }
-        order.setStatus(OrderStatus.valueOf(status));
-        return orderRepository.save(order);
     }
 
     @Override
     @Transactional
     public Order updateOrderStatusMomo(String id, String status) {
-        Order order = orderRepository.findByIdOrder(id);
-        if (order == null) {
-            throw new IllegalArgumentException("Order not found");
+        try {
+            Order order = orderRepository.findByIdOrder(id);
+            if (order == null) {
+                throw new IllegalArgumentException("Order not found");
+            }
+            if (!isValidStatus(status)) {
+                throw new IllegalArgumentException("Invalid status: " + status);
+            }
+            if (order.getStatus() == OrderStatus.CANCELLED) {
+                throw new IllegalArgumentException("Order has been cancelled");
+            }
+            order.setStatus(OrderStatus.valueOf(status));
+            return orderRepository.save(order);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update order status", e);
         }
-
-        if (!isValidStatus(status)) {
-            throw new IllegalArgumentException("Invalid status: " + status);
-        }
-        if (order.getStatus() == OrderStatus.CANCELLED) {
-            throw new IllegalArgumentException("Order has been cancelled");
-        }
-        order.setStatus(OrderStatus.valueOf(status));
-        return orderRepository.save(order);
     }
 
     @Override
     @Transactional
     public void deleteOrder(Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> null);
-        orderItemRepository.deleteByOrder(order); // Xóa OrderItem trước
-        orderRepository.delete(order);
+        try {
+            Order order = orderRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+            orderItemRepository.deleteByOrder(order); // Xóa OrderItem trước
+            orderRepository.delete(order);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete order", e);
+        }
     }
 
     @Override
     public List<Order> getOrdersByUser(String username) {
-        User user = userRepository.findByEmail(username);
-        if (user == null) {
-            return Collections.emptyList();
+        try {
+            User user = userRepository.findByEmail(username);
+            if (user == null) {
+                return Collections.emptyList();
+            }
+            return orderRepository.findByUser(user);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to retrieve orders by user", e);
         }
-        return orderRepository.findByUser(user);
     }
 
     private boolean isValidStatus(String status) {
@@ -253,6 +288,8 @@ public class OrderServiceImpl implements IOrderService {
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             document.save(outputStream);
             return outputStream.toByteArray();
+        } catch (Exception e) {
+            throw new IOException("Failed to generate PDF", e);
         }
     }
 

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import datn.com.cosmetics.bean.request.ReviewRequest;
+import datn.com.cosmetics.entity.OrderItem;
 import datn.com.cosmetics.entity.Product;
 import datn.com.cosmetics.entity.Review;
 import datn.com.cosmetics.entity.User;
@@ -26,42 +27,44 @@ public class ReviewServiceImpl implements IReviewService {
     private OrderItemRepository orderItemRepository;
     @Autowired
     private UserRepository userRepository;
- 
+
     @Override
     public Review addReview(ReviewRequest reviewRequest, String username) {
-        // kiểm tra sản phẩm đã được mua chưa
         User user = userRepository.findByEmail(username);
         if (user == null) {
-            return null;
+            throw new RuntimeException("User not found");
         }
-        if (orderItemRepository.checkProductIsBought(user.getId(), reviewRequest.getProductId()) == 0) {
-            return null;
+
+        OrderItem orderItem = orderItemRepository.getOrderItemById(reviewRequest.getOrderId(), reviewRequest.getProductId());
+        if (orderItem == null) {
+            throw new RuntimeException("Order item not found");
         }
-        Product product = productRepository.findById(reviewRequest.getProductId()).get();
-        if (product == null) {
-            return null;
+        System.out.println(orderItem.getProduct().getId());
+      
+
+        if (orderItem.getOrder().getUser().getId() != user.getId()) {
+            throw new RuntimeException("Order item does not belong to user");
         }
-        // check xem đã review chưa
-        if (reviewRepository.findByProductIdAndUserId(product.getId(), user.getId()) != null) {
-            return null;
+
+        if (reviewRepository.findByOrderIdAndProductId(orderItem.getId(), reviewRequest.getProductId()) != null) {
+            throw new RuntimeException("Review already exists for this order item and product");
         }
+
         Review review = new Review();
         review.setReview(reviewRequest.getReview());
         review.setStar(reviewRequest.getStar());
-        review.setProduct(productRepository.findById(reviewRequest.getProductId()).get());
+        review.setProduct(productRepository.findById(reviewRequest.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found")));
         review.setUser(user);
+        review.setOrderItem(orderItem);
         return reviewRepository.save(review);
     }
 
     @Override
     public List<Review> getReviewByProductId(Long productId) {
-        Product product = productRepository.findById(productId).get();
-        if (product == null) {
-            return null;
-        }
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
         return reviewRepository.findByProductId(product.getId());
     }
-
-    
 
 }

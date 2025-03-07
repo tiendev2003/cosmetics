@@ -7,5 +7,6 @@ public class ReviewRequest {
     private String review;
     private float star;
     private Long productId;
+    private Long orderId;
  
 }

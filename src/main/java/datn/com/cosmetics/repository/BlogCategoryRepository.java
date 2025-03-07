@@ -16,7 +16,9 @@ public interface BlogCategoryRepository extends JpaRepository<BlogCategory, Long
     Page<BlogCategory> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     @Query("SELECT new datn.com.cosmetics.bean.response.BlogCategoryDTO(c.id, c.name, c.description, COUNT(b)) " +
-           "FROM BlogCategory c LEFT JOIN Blog b ON c.id = b.category.id " +
-           "GROUP BY c.id, c.name, c.description")
-    List<BlogCategoryDTO> findAllCategoriesWithBlogCount();
+            "FROM BlogCategory c LEFT JOIN Blog b ON c.id = b.category.id " +
+            "GROUP BY c.id, c.name, c.description " +
+            "ORDER BY COUNT(b) DESC")
+    List<BlogCategoryDTO> findTop5CategoriesWithBlogCount(Pageable pageable);
+
 }
