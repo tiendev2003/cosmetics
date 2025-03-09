@@ -24,7 +24,7 @@ public interface IDiscountService {
 
     void deleteDiscount(Long id);
 
-    Page<Discount> getAllDiscounts(String search, int page, int size);
+    Page<Discount> getAllDiscounts(String search, boolean isActive,int page, int size);
 
     void validateDiscountDTO(DiscountDTO discountDTO);
 

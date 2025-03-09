@@ -39,8 +39,8 @@ public class BrandServiceImpl implements IBrandService {
         brand.setName(brandRequest.getName());
         brand.setDescription(brandRequest.getDescription());
         brand.setImage(brandRequest.getImage());
-        brand.setStatus(brandRequest.getStatus());
-        return brandRepository.save(brand);
+        brand.setActive(brandRequest.isActive());
+         return brandRepository.save(brand);
     }
 
     @Override
@@ -60,7 +60,7 @@ public class BrandServiceImpl implements IBrandService {
             updatedBrand.setName(brandRequest.getName());
             updatedBrand.setDescription(brandRequest.getDescription());
             updatedBrand.setImage(brandRequest.getImage());
-            updatedBrand.setStatus(brandRequest.getStatus());
+            updatedBrand.setActive(brandRequest.isActive());
             return brandRepository.save(updatedBrand);
         }
         throw new ResourceNotFoundException("Brand not found");
@@ -68,7 +68,7 @@ public class BrandServiceImpl implements IBrandService {
 
     private void validateBrand(BrandRequest brandRequest) {
         if (brandRequest.getName().isEmpty() || brandRequest.getDescription().isEmpty() ||
-                brandRequest.getImage().isEmpty() || brandRequest.getStatus() == null) {
+                brandRequest.getImage().isEmpty()  ) {
             throw new ValidationException("All fields are required");
         }
         // Add more validation logic as needed
@@ -89,18 +89,15 @@ public class BrandServiceImpl implements IBrandService {
     public Brand getBrandById(Long id) {
         return brandRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Brand not found"));
     }
+ 
 
     @Override
-    public List<Brand> getAllBrands() {
-        return brandRepository.findAll();
-    }
-
-    @Override
-    public Page<Brand> getAllBrands(String name, Pageable pageable) {
+    public Page<Brand> getAllBrands(String name,boolean isActive, Pageable pageable) {
+        System.out.println("isActive: " + isActive);
         if (name != null && !name.isEmpty()) {
-            return brandRepository.findByNameContainingIgnoreCase(name, pageable);
+            return brandRepository.findByNameContainingIgnoreCase(name,isActive, pageable);
         }
-        return brandRepository.findAll(pageable);
+        return brandRepository.findAll(isActive,pageable);
     }
 
     @Override

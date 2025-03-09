@@ -41,7 +41,7 @@ public class CartController {
     @Operation(summary = "Add item to cart", description = "Add an item to the cart with the provided details")
     public ResponseEntity<ApiResponse<Cart>> addToCart(
             @Parameter(description = "Cart request body", required = true) @RequestBody CartRequest cartRequest,
-            @Parameter(description = "Authorization token", required = true) @RequestHeader("Authorization") String token) {
+            @Parameter(description = "Authorization token", required = false) @RequestHeader("Authorization") String token) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()

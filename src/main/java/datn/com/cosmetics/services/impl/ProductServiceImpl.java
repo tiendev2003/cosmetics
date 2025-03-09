@@ -74,53 +74,64 @@ public class ProductServiceImpl implements IProductService {
     }
 
     @Override
+    @Transactional
     public void deleteProduct(Long id) {
-        try {
+        
+            int count = productRepository.countOrderItemsByProductId(id);
+            if (count > 0) {
+                throw new IllegalStateException("Sản phẩm đang có trong đơn hàng, không thể xóa!");
+            }
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+                    // xóa ảnh
+            productImageRepository.deleteByProductId(product.getId());
             productRepository.deleteById(id);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
-        }
+       
     }
-
+    
     @Override
     public Product getProductById(Long id) {
         try {
             return productRepository.findById(id)
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
         }
     }
 
     @Override
     public Page<Product> getAllProducts(Double minPrice, Double maxPrice, Long brandId, Long categoryId, String sortBy,
-            String sortDirection, Pageable pageable, String search) {
+            String sortDirection, Pageable pageable, String search, boolean isActive) {
         try {
             if (minPrice != null || maxPrice != null || brandId != null || categoryId != null || sortBy != null
                     || sortDirection != null || search != null) {
-                
+
                 // Nếu sortDirection là null, đặt mặc định là "asc"
                 Sort.Direction direction = Sort.Direction.ASC; // Giá trị mặc định
                 if (sortDirection != null) {
                     direction = sortDirection.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
                 }
-    
+
                 // Nếu sortBy không hợp lệ, mặc định sắp xếp theo "name"
                 List<String> allowedSortFields = Arrays.asList("name", "createdDate", "price");
                 if (sortBy == null || !allowedSortFields.contains(sortBy)) {
                     sortBy = "name";
                 }
-    
+                if (sortDirection == null) {
+                    sortDirection = "asc";
+                }
+
                 pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(direction, sortBy));
-                return productRepository.findByFilters(minPrice, maxPrice, brandId, categoryId, sortBy, sortDirection,
-                        pageable, search);
+                return productRepository.findByFilters(minPrice, maxPrice, brandId, categoryId, search, isActive,
+                        sortBy, sortDirection,
+                        pageable);
             }
             return productRepository.findAll(pageable);
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Lỗi khi lấy danh sách sản phẩm: " + e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Lỗi khi lấy danh sách sản phẩm: " + e.getMessage(), e);
         }
     }
-    
 
     @Override
     public Page<Product> getProductsByFilter(Double minPrice, Double maxPrice, Long brandId, Long categoryId,
@@ -160,7 +171,7 @@ public class ProductServiceImpl implements IProductService {
         product.setStock(productRequest.getStock());
         product.setIngredients(productRequest.getIngredients());
         product.setProductUsage(productRequest.getProductUsage());
-        product.setStatus(productRequest.getStatus());
+        product.setActive(productRequest.isActive());
 
         Category category = categoryRepository.findById(productRequest.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -176,7 +187,16 @@ public class ProductServiceImpl implements IProductService {
         if (productRequest.getName() == null || productRequest.getName().isEmpty()) {
             throw new RuntimeException("Product name is required");
         }
-        System.out.println("ProductRequest: " + productRequest);
+        if (productRequest.getDescription().length() > 1000) {
+
+            throw new RuntimeException("Product description must be less than 1000 characters");
+        }
+        if (productRequest.getProductUsage().length() > 1000) {
+            throw new RuntimeException("Product usage must be less than 1000 characters");
+        }
+        if (productRequest.getIngredients().length() > 1000) {
+            throw new RuntimeException("Product ingredients must be less than 1000 characters");
+        }
         if (productRequest.isSale() && productRequest.getSalePrice() == null) {
             throw new RuntimeException("Product price must be greater than zero");
         }

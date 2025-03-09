@@ -18,9 +18,8 @@ public interface IBrandService {
 
     Brand getBrandById(Long id);
 
-    List<Brand> getAllBrands();
-
-    Page<Brand> getAllBrands(String name, Pageable pageable);
+ 
+    Page<Brand> getAllBrands(String name,boolean isActive, Pageable pageable);
 
   public List<BrandCategoryProductDTO> getTop5Brands() ;
 }

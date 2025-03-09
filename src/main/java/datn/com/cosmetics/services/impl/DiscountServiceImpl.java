@@ -20,6 +20,7 @@ import datn.com.cosmetics.exceptions.DuplicateDiscountCodeException;
 import datn.com.cosmetics.exceptions.DuplicateDiscountNameException;
 import datn.com.cosmetics.exceptions.UserNotFoundException;
 import datn.com.cosmetics.exceptions.ValidationException;
+import datn.com.cosmetics.repository.CartRepository;
 import datn.com.cosmetics.repository.DiscountRepository;
 import datn.com.cosmetics.repository.OrderRepository;
 import datn.com.cosmetics.services.IDiscountService;
@@ -35,6 +36,9 @@ public class DiscountServiceImpl implements IDiscountService {
 
     @Autowired
     private CartServiceImpl cartService;
+
+    @Autowired
+    private CartRepository cartRepository;
 
     @Autowired
     private IUserService userService;
@@ -58,6 +62,8 @@ public class DiscountServiceImpl implements IDiscountService {
             if (cart == null) {
                 throw new Exception("Cart not found");
             }
+            cart.setDiscountCode(discountCode);
+            cartRepository.save(cart);
             BigDecimal discountAmount = calculateDiscount(cart.getCartItems(), discount);
 
             return discountAmount;
@@ -180,7 +186,7 @@ public class DiscountServiceImpl implements IDiscountService {
             discount.setName(discountDTO.getName());
             discount.setMaxUsage(discountDTO.getMaxUsage());
             discount.setMinOrderValue(discountDTO.getMinOrderValue());
-            discount.setIsActive(discountDTO.getIsActive());
+            discount.setActive(discountDTO.isActive());
             discount.setDiscountCode(discountDTO.getDiscountCode());
             discount.setDiscountValue(discountDTO.getDiscountValue());
             discount.setDiscountType(discountDTO.getDiscountType());
@@ -203,21 +209,18 @@ public class DiscountServiceImpl implements IDiscountService {
 
     @Override
     public void deleteDiscount(Long id) {
-        try {
-            discountRepository.deleteById(id);
-        } catch (Exception e) {
-            throw new RuntimeException("Error deleting discount: " + e.getMessage());
-        }
+        discountRepository.deleteById(id);
+
     }
 
     @Override
-    public Page<Discount> getAllDiscounts(String search, int page, int size) {
+    public Page<Discount> getAllDiscounts(String search, boolean isActive, int page, int size) {
         try {
             Pageable pageable = PageRequest.of(page, size);
             if (search == null || search.isEmpty()) {
                 return discountRepository.findAll(pageable);
             } else {
-                return discountRepository.findByDiscountCodeContainingIgnoreCase(search, pageable);
+                return discountRepository.findByDiscountCodeContainingIgnoreCase(search, isActive, pageable);
             }
         } catch (Exception e) {
             throw new RuntimeException("Error retrieving discounts: " + e.getMessage());

@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,16 +34,17 @@ public class Product {
   private Long id;
 
   private String name;
-
+  @Size(max = 1000, message = "Description cannot exceed 1000 characters")
   private String description;
 
   private BigDecimal price;
   private BigDecimal salePrice;
   private boolean isSale;
   private int stock;
+  @Size(max = 1000, message = "Description cannot exceed 1000 characters")
   private String ingredients;
+  @Size(max = 1000, message = "Description cannot exceed 1000 characters")
   private String productUsage;
-
   @JsonManagedReference
   @OneToMany(mappedBy = "product")
   private List<ProductImage> productImages;
@@ -58,7 +60,7 @@ public class Product {
   @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Review> reviews = new ArrayList<>();
 
-  private String status;
+  private boolean isActive;
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
   private LocalDateTime createdDate = LocalDateTime.now();
 
@@ -82,8 +84,7 @@ public class Product {
     this.category = category;
     this.brand = brand;
     this.reviews = reviews;
-    this.status = status;
-    this.createdDate = createdDate;
+     this.createdDate = createdDate;
     this.updatedDate = updatedDate;
   }
 

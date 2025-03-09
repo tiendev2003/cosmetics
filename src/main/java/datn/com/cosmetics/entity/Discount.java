@@ -37,7 +37,7 @@ public class Discount {
     private Long applicableProductId;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
-    private Boolean isActive;
+    private boolean isActive;
 
     public Discount(
             String name,
@@ -51,7 +51,7 @@ public class Discount {
             Long applicableProductId,
             LocalDateTime startDate,
             LocalDateTime endDate,
-            Boolean isActive) {
+            boolean isActive) {
         this.name = name;
         this.discountCode = discountCode;
         this.discountType = discountType;

@@ -36,9 +36,7 @@ public class Category {
   @Schema(description = "Image URL of the category", example = "http://example.com/image.jpg")
   private String image;
 
-  @Schema(description = "Status of the category", example = "0")
-  private String status = "0";
-
+   private boolean isActive = true;
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
   @Schema(description = "Creation date of the category", example = "2023-10-01 12:00:00")
   private LocalDateTime createdDate = LocalDateTime.now();

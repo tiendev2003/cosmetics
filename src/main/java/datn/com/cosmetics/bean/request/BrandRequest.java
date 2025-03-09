@@ -14,8 +14,6 @@ public class BrandRequest {
     @Size(max = 255, message = "Description must be less than 255 characters")
     private String description;
 
-    @NotBlank(message = "Status is mandatory")
-    private String status;
-
+     private  boolean isActive=true;
     private String image;
 }

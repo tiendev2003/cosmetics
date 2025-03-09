@@ -47,7 +47,7 @@ public class ReviewServiceImpl implements IReviewService {
         }
 
         if (reviewRepository.findByOrderIdAndProductId(orderItem.getId(), reviewRequest.getProductId()) != null) {
-            throw new RuntimeException("Review already exists for this order item and product");
+            throw new RuntimeException("Bạn đã đánh giá sản phẩm này rồi");
         }
 
         Review review = new Review();

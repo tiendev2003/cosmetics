@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import datn.com.cosmetics.bean.response.ErrorResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -24,13 +25,22 @@ public class GlobalExceptionHandler {
                 System.currentTimeMillis());
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        return new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Không thể xóa vì có dữ liệu liên quan. Vui lòng kiểm tra lại!",
+                System.currentTimeMillis());
+    }
+    
     // Xử lý tất cả các exception chung
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleGeneralException(Exception ex) {
         return new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Something went wrong: " + ex.getMessage(),
+                ex.getMessage(),
                 System.currentTimeMillis());
     }
 
@@ -102,6 +112,14 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
                 System.currentTimeMillis());
+    }
+    @ExceptionHandler(org.springframework.web.bind.MissingRequestHeaderException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleMissingRequestHeaderException(org.springframework.web.bind.MissingRequestHeaderException ex) {
+    return new ErrorResponse(
+            HttpStatus.UNAUTHORIZED.value(),
+            "Bạn chưa đăng nhập. Vui lòng đăng nhập để tiếp tục.",
+            System.currentTimeMillis());
     }
 
 }

@@ -20,7 +20,7 @@ public class DiscountDTO {
     private Integer maxUsage;
     private BigDecimal maxDiscountAmount;
     private Long applicableProductId;
-    private Boolean isActive;
+    private boolean isActive;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 

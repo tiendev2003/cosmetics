@@ -81,8 +81,9 @@ public class BrandController {
     @GetMapping
     @Operation(summary = "Get all brands", description = "Retrieve a list of all brands with optional search by name and pagination")
     public ResponseEntity<ApiResponse<List<Brand>>> getAllBrands(@RequestParam(required = false) String search,
+    @RequestParam(required = false) boolean isActive,
             Pageable pageable) {
-        Page<Brand> brands = brandService.getAllBrands(search, pageable);
+        Page<Brand> brands = brandService.getAllBrands(search,isActive, pageable);
         ApiResponse.Pagination pagination = new ApiResponse.Pagination(brands.getNumber() + 1, brands.getTotalPages(),
                 brands.getTotalElements());
         String message = "Brands retrieved successfully";

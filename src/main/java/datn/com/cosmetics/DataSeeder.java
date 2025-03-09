@@ -210,6 +210,24 @@ public class DataSeeder implements CommandLineRunner {
 
                                 entityManager.persist(user);
                         }
+                        User admin = new User(
+                                        "admin",
+                                        "admin@gmail.com",
+                                        passwordEncoder.encode("123123123"),
+                                        faker.internet().avatar(),
+                                        false,
+                                        "ADMIN");
+
+                        entityManager.persist(admin);
+                        User me = new User(
+                                        "trancongtien406",
+                                        "trancongtien406@gmail.com",
+                                        passwordEncoder.encode("123123123"),
+                                        faker.internet().avatar(),
+                                        false,
+                                        "ADMIN");
+
+                        entityManager.persist(me);
                         entityManager.flush();
                         entityManager.clear();
                         System.out.println("✅ Seeded Users!");

@@ -35,6 +35,10 @@ public class CartServiceImpl implements ICartService {
         Product product = productRepository.findById(cartRequest.getProductId())
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
+        if (product.getStock()<cartRequest.getQuantity()) {
+            throw new RuntimeException("Product quantity is not enough");
+        }       
+
         Cart cart = cartRepository.findByUser(user).orElseGet(() -> {
             Cart newCart = new Cart();
             newCart.setUser(user);

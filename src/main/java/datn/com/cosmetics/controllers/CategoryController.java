@@ -71,8 +71,10 @@ public class CategoryController {
     @Operation(summary = "Get all categories", description = "Retrieve a list of all categories with optional search by name and pagination")
     public ResponseEntity<ApiResponse<List<Category>>> getAllCategories(
             @Parameter(description = "Search", required = false) @RequestParam(required = false) String search,
+            @Parameter(description = "Is active", required = false) @RequestParam(required = false)  boolean isActive,
+
             Pageable pageable) {
-        Page<Category> categories = categoryService.getAllCategories(search, pageable);
+        Page<Category> categories = categoryService.getAllCategories(search, isActive,pageable);
         ApiResponse.Pagination pagination = new ApiResponse.Pagination(categories.getNumber() + 1,
                 categories.getTotalPages(), categories.getTotalElements());
         String message = "Categories retrieved successfully";

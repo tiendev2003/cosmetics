@@ -69,8 +69,8 @@ public class ProductController {
                         productService.deleteProduct(id);
                         ApiResponse<Void> response = ApiResponse.success(null, "Product deleted successfully");
                         return ResponseEntity.ok(response);
-                } catch (Exception e) {
-                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage(), e);
+                } catch (IllegalStateException  e) {
+                         return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
                 }
         }
 
@@ -97,10 +97,15 @@ public class ProductController {
                         @Parameter(description = "Sort by field", required = false) @RequestParam(required = false) String sortBy,
                         @Parameter(description = "Sort direction", required = false) @RequestParam(required = false) String sortDirection,
                         @Parameter(description = "Search", required = false) @RequestParam(required = false) String search,
+                        // param isActive
+                        @Parameter(description = "Is active", required = false) @RequestParam(required = false) Boolean isActive,
                         Pageable pageable) {
                 try {
+                        if (isActive == null) {
+                                isActive = false;
+                        }
                         Page<Product> products = productService.getAllProducts(minPrice, maxPrice, brandId, categoryId, sortBy,
-                                        sortDirection, pageable, search);
+                                        sortDirection, pageable, search,isActive);
                         ApiResponse.Pagination pagination = new ApiResponse.Pagination(products.getNumber() + 1,
                                         products.getTotalPages(),
                                         products.getTotalElements());

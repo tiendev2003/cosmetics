@@ -87,22 +87,19 @@ public class DiscountController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteDiscount(@PathVariable Long id) {
-        try {
-            discountService.deleteDiscount(id);
-            return ResponseEntity.ok(ApiResponse.success(null, "Discount deleted successfully"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(404).body(ApiResponse.error("Discount not found: " + e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body(ApiResponse.error("Internal server error: " + e.getMessage()));
-        }
+
+        discountService.deleteDiscount(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Discount deleted successfully"));
+
     }
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Discount>>> getAllDiscounts(@RequestParam(required = false) String search,
+            @RequestParam(required = false) boolean isActive,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         try {
-            Page<Discount> discounts = discountService.getAllDiscounts(search, page, size);
+            Page<Discount> discounts = discountService.getAllDiscounts(search, isActive, page, size);
             ApiResponse.Pagination pagination = new ApiResponse.Pagination(discounts.getNumber() + 1,
                     discounts.getTotalPages(),
                     discounts.getTotalElements());

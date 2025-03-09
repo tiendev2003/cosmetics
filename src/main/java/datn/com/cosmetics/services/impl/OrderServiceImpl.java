@@ -19,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import datn.com.cosmetics.bean.request.OrderRequest;
 import datn.com.cosmetics.entity.Address;
+import datn.com.cosmetics.entity.Cart;
+import datn.com.cosmetics.entity.Discount;
 import datn.com.cosmetics.entity.Order;
 import datn.com.cosmetics.entity.OrderItem;
 import datn.com.cosmetics.entity.User;
@@ -26,6 +28,7 @@ import datn.com.cosmetics.entity.enums.OrderStatus;
 import datn.com.cosmetics.repository.AddressRepository;
 import datn.com.cosmetics.repository.CartItemRepository;
 import datn.com.cosmetics.repository.CartRepository;
+import datn.com.cosmetics.repository.DiscountRepository;
 import datn.com.cosmetics.repository.OrderItemRepository;
 import datn.com.cosmetics.repository.OrderRepository;
 import datn.com.cosmetics.repository.ProductRepository;
@@ -44,6 +47,8 @@ public class OrderServiceImpl implements IOrderService {
     private CartItemRepository cartItemRepository;
     @Autowired
     private CartRepository cartRepository;
+    @Autowired
+    private DiscountRepository discountRepository;
 
     @Autowired
     private OrderItemRepository orderItemRepository;
@@ -72,6 +77,7 @@ public class OrderServiceImpl implements IOrderService {
             if (user == null) {
                 throw new IllegalArgumentException("User not found");
             }
+            Cart cart = cartRepository.findByUser(user).orElse(null);
 
             // Kiểm tra address
             Address address = addressRepository.findById(orderRequest.getAddress())
@@ -85,10 +91,20 @@ public class OrderServiceImpl implements IOrderService {
             if (!isValidPaymentMethod(orderRequest.getPaymentMethod())) {
                 throw new IllegalArgumentException("Invalid payment method: " + orderRequest.getPaymentMethod());
             }
+            Order order = new Order();
+
+            // kiểm tra mã giảm giá trong giỏ hàng có trùng với mã giảm giá trong order
+            if (orderRequest.getDiscountCode() != null) {
+                if (!orderRequest.getDiscountCode().equals(cart.getDiscountCode())) {
+                    throw new IllegalArgumentException("Invalid discount code: " + orderRequest.getDiscountCode());
+                }
+                Discount discount = discountRepository.findByDiscountCode(orderRequest.getDiscountCode());
+                order.setDiscount(discount);
+
+            }
 
             // **Fix lỗi Duplicate Entry**
             // Tạo order mới với ID tự động sinh
-            Order order = new Order();
             order.setUser(user);
             order.setShippingAddress(address);
             order.setTotalAmount(orderRequest.getTotalAmount());
@@ -115,6 +131,16 @@ public class OrderServiceImpl implements IOrderService {
                 orderItemRepository.save(orderItem);
             });
 
+            // nếu là cod thì xóa cart
+            if (orderRequest.getPaymentMethod().equals("COD")) {
+
+                if (cart != null) {
+                    cartItemRepository.deleteByCartId(cart.getId());
+                    cart.setTotal(0);
+                    cart.setDiscountCode(null);
+                    cartRepository.save(cart);
+                }
+            }
 
             return newOrder;
         } catch (IllegalArgumentException e) {

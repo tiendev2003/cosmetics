@@ -23,11 +23,12 @@ public class CategoryServiceImpl implements ICategoryService {
     @Override
     public Category createCategory(CategoryRequest categoryRequest) {
         checkDuplicateCategoryName(categoryRequest.getName());
+        System.out.println(categoryRequest);
         Category category = new Category();
         category.setName(categoryRequest.getName());
         category.setDescription(categoryRequest.getDescription());
         category.setImage(categoryRequest.getImage());
-        category.setStatus(categoryRequest.getStatus());
+        category.setActive(categoryRequest.isActive());
         return categoryRepository.save(category);
     }
 
@@ -45,11 +46,12 @@ public class CategoryServiceImpl implements ICategoryService {
         if (!existingCategory.getName().equals(categoryRequest.getName())) {
             checkDuplicateCategoryName(categoryRequest.getName());
         }
+        System.out.println(categoryRequest);
 
         existingCategory.setName(categoryRequest.getName());
         existingCategory.setDescription(categoryRequest.getDescription());
         existingCategory.setImage(categoryRequest.getImage());
-        existingCategory.setStatus(categoryRequest.getStatus());
+        existingCategory.setActive(categoryRequest.isActive());
 
         return categoryRepository.save(existingCategory);
     }
@@ -70,11 +72,11 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
-    public Page<Category> getAllCategories(String name, Pageable pageable) {
+    public Page<Category> getAllCategories(String name,boolean isActive, Pageable pageable) {
         if (name != null && !name.isEmpty()) {
-            return categoryRepository.findByNameContaining(name, pageable);
+            return categoryRepository.findByNameContaining(name,isActive, pageable);
         }
-        return categoryRepository.findAll(pageable);
+        return categoryRepository.findAll(isActive,pageable);
     }
 
     @Override

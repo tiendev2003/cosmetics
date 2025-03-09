@@ -17,6 +17,6 @@ public class ProductRequest {
     private String productUsage;
     private Long categoryId;
     private Long brandId;
-    private String status;
+    private boolean active;
     private List<String> images;
 }

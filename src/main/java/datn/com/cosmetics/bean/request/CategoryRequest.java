@@ -15,8 +15,6 @@ public class CategoryRequest {
     @Schema(description = "Image URL of the category", example = "http://example.com/image.jpg")
     private String image;
 
-    @Schema(description = "Status of the category", example = "0")
-    private String status = "0";
-
+    private boolean isActive  ;
  
 }

@@ -15,5 +15,6 @@ public class OrderRequest {
     BigDecimal totalAmount;
     BigDecimal discountAmount;
     BigDecimal finalAmount;
+    String discountCode;
 
 }

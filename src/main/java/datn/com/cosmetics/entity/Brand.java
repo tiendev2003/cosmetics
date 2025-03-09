@@ -29,7 +29,7 @@ public class Brand {
     private String description;
     private String image;
 
-    private String status = "0";
+     private boolean isActive = true;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdDate = LocalDateTime.now();
 

@@ -21,20 +21,23 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                         + "(:maxPrice IS NULL OR p.price <= :maxPrice) AND "
                         + "(:brandId IS NULL OR p.brand.id = :brandId) AND "
                         + "(:categoryId IS NULL OR p.category.id = :categoryId) AND "
-                        + "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) "
+                        + "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND "
+                        + "(:isActive = FALSE OR p.isActive = TRUE)"
                         + "ORDER BY "
                         + "CASE WHEN :sortBy = 'name' AND :sortDirection = 'asc' THEN p.name END ASC, "
                         + "CASE WHEN :sortBy = 'name' AND :sortDirection = 'desc' THEN p.name END DESC, "
                         + "CASE WHEN :sortBy = 'createdDate' AND :sortDirection = 'asc' THEN p.createdDate END ASC, "
                         + "CASE WHEN :sortBy = 'createdDate' AND :sortDirection = 'desc' THEN p.createdDate END DESC")
-        Page<Product> findByFilters(@Param("minPrice") Double minPrice,
+        Page<Product> findByFilters(
+                        @Param("minPrice") Double minPrice,
                         @Param("maxPrice") Double maxPrice,
                         @Param("brandId") Long brandId,
                         @Param("categoryId") Long categoryId,
-
+                        @Param("name") String search,
+                        @Param("isActive") boolean isActive,
                         @Param("sortBy") String sortBy,
                         @Param("sortDirection") String sortDirection,
-                        Pageable pageable, @Param("name") String search);
+                        Pageable pageable);
 
         @Query("SELECT p FROM Product p ORDER BY p.createdDate DESC")
         List<Product> findNewArrivals(Pageable pageable);
@@ -53,6 +56,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
         @Query("SELECT p FROM Product p " +
                         "WHERE p.name LIKE %:keyword% " +
-                        "OR p.description LIKE %:keyword%")
+                        "OR p.description LIKE %:keyword%" +
+                        " and p.isActive = true"
+                        )
         List<Product> searchProducts(@Param("keyword") String keyword);
+
+
+    @Query("SELECT COUNT(o) FROM OrderItem o WHERE o.product.id = :productId")
+    int countOrderItemsByProductId(Long productId);
 }
