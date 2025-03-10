@@ -92,9 +92,10 @@ public class OrderServiceImpl implements IOrderService {
                 throw new IllegalArgumentException("Invalid payment method: " + orderRequest.getPaymentMethod());
             }
             Order order = new Order();
+            System.out.println("cart: " + orderRequest.getDiscountCode().isEmpty());
 
             // kiểm tra mã giảm giá trong giỏ hàng có trùng với mã giảm giá trong order
-            if (orderRequest.getDiscountCode() != null) {
+            if (orderRequest.getDiscountCode().isEmpty()==false) {
                 if (!orderRequest.getDiscountCode().equals(cart.getDiscountCode())) {
                     throw new IllegalArgumentException("Invalid discount code: " + orderRequest.getDiscountCode());
                 }

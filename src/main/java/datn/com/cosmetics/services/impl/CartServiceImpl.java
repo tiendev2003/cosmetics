@@ -46,9 +46,7 @@ public class CartServiceImpl implements ICartService {
             return cartRepository.save(newCart);
         });
 
-        BigDecimal unitPrice = product.isSale() && product.getSalePrice() != null
-                ? product.getSalePrice()
-                : product.getPrice();
+        BigDecimal unitPrice =  product.getSalePrice() != null ? product.getSalePrice() : product.getPrice();
 
         Optional<CartItem> existingCartItem = cart.getCartItems().stream()
                 .filter(item -> item.getProduct().getId().equals(product.getId()))

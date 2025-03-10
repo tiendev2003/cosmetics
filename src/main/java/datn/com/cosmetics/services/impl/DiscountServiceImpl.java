@@ -53,6 +53,7 @@ public class DiscountServiceImpl implements IDiscountService {
             if (discountCode == null || discountCode.isEmpty()) {
                 throw new Exception("Discount code is empty");
             }
+            System.out.println("Discount code: " + discountCode);
             Discount discount = discountRepository.findByDiscountCode(discountCode);
             if (discount == null) {
                 throw new Exception("Discount code not found");
@@ -134,11 +135,16 @@ public class DiscountServiceImpl implements IDiscountService {
 
             Discount discount = new Discount();
             discount.setName(discountDTO.getName());
+            discount.setMaxUsage(discountDTO.getMaxUsage());
+            discount.setMinOrderValue(discountDTO.getMinOrderValue());
+            discount.setActive(discountDTO.isActive());
             discount.setDiscountCode(discountDTO.getDiscountCode());
             discount.setDiscountValue(discountDTO.getDiscountValue());
             discount.setDiscountType(discountDTO.getDiscountType());
             discount.setMaxDiscountAmount(discountDTO.getMaxDiscountAmount());
             discount.setApplicableProductId(discountDTO.getApplicableProductId());
+            discount.setStartDate(discountDTO.getStartDate());
+            discount.setEndDate(discountDTO.getEndDate());
             discountRepository.save(discount);
             return discount;
         } catch (ValidationException e) {

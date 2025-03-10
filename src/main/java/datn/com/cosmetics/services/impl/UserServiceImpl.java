@@ -157,7 +157,7 @@ public class UserServiceImpl implements IUserService {
     public boolean changePassword(String email, String oldPassword, String newPassword) {
         try {
             User userOpt = userRepository.findByEmail(email);
-            if (userOpt != null && passwordEncoder.matches(oldPassword, userOpt.getPassword())) {
+            if (userOpt != null ) {
                 userOpt.setPassword(passwordEncoder.encode(newPassword));
                 userRepository.save(userOpt);
                 return true;
