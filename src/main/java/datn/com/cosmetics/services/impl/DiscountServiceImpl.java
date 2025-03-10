@@ -106,14 +106,7 @@ public class DiscountServiceImpl implements IDiscountService {
     @Override
     public BigDecimal calculateApplicableAmount(Set<CartItem> items, Long applicableProductId) {
         try {
-            if (applicableProductId == null) {
-                return items.stream()
-                        .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-            }
-
             return items.stream()
-                    .filter(item -> item.getProduct().getId().equals(applicableProductId))
                     .map(item -> item.getUnitPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         } catch (Exception e) {
